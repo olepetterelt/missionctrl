@@ -1,6 +1,3 @@
-// Cloudflare Pages Function — proxies NASA APIs
-// NASA_API_KEY is set in Cloudflare dashboard, never in repo
-
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -9,7 +6,8 @@ export async function onRequest(context) {
 
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'NASA_API_KEY not configured' }), {
-      status: 500, headers: corsHeaders('application/json'),
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }
 
@@ -22,38 +20,31 @@ export async function onRequest(context) {
   };
 
   if (!endpoint || !endpoints[endpoint]) {
-    return new Response(JSON.stringify({ error: 'Unknown endpoint. Use: apod, asteroids, neo, mars, epic' }), {
-      status: 400, headers: corsHeaders('application/json'),
+    return new Response(JSON.stringify({ error: 'Unknown endpoint' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }
 
   try {
-    const res = await fetch(endpoints[endpoint], {
-      headers: { 'User-Agent': 'missionctrl.no/1.0' },
-    });
+    const res = await fetch(endpoints[endpoint]);
     const data = await res.text();
     return new Response(data, {
       status: res.status,
-      headers: corsHeaders(res.headers.get('content-type') || 'application/json'),
+      headers: {
+        'Content-Type': res.headers.get('content-type') || 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=300',
+      },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Upstream NASA API error', detail: e.message }), {
-      status: 502, headers: corsHeaders('application/json'),
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }
 }
 
 function forwardParams(url, keys) {
-  return keys
-    .filter(k => url.searchParams.has(k))
-    .map(k => `${k}=${url.searchParams.get(k)}`)
-    .join('&');
-}
-
-function corsHeaders(contentType) {
-  return {
-    'Content-Type': contentType,
-    'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'public, max-age=300',
-  };
+  return keys.filter(k => url.searchParams.has(k)).map(k => `${k}=${url.searchParams.get(k)}`).join('&');
 }
