@@ -112,7 +112,7 @@ window.onLocationReady=function(loc){
 
 async function fetchISS(){
   try{
-    const r=await fetch('/functions/n2yo?type=positions&id=25544&seconds=1');
+    const r=await fetch('/n2yo?type=positions&id=25544&seconds=1');
     const d=await r.json();
     const pos=d.positions?d.positions[0]:d;
     issLat=parseFloat(pos.satlatitude!=null?pos.satlatitude:pos.latitude);
