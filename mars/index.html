@@ -204,7 +204,7 @@ async function fetchMarsWeather(){
   // Try NASA InSight/Perseverance API (often returns cached data)
   let weatherData=null;
   try{
-    const r=await fetch('/functions/nasa?endpoint=mars');
+    const r=await fetch('/nasa?endpoint=mars');
     const d=await r.json();
     const sols=Object.keys(d).filter(k=>!isNaN(k)).sort((a,b)=>b-a);
     if(sols.length){
