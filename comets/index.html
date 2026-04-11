@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Current comet tracker with visibility ratings based on your location. Orbital data and observation tips.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Comets — MissionCtrl.no">
+<meta property="og:description" content="Current comet tracker with visibility ratings based on your location. Orbital data and observation tips.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/comets/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Comets — MissionCtrl.no">
+<meta name="twitter:description" content="Current comet tracker with visibility ratings based on your location. Orbital data and observation tips.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Comets — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}}
+.comet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:28px;}
+.comet-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;}
+.comet-card:hover{border-color:var(--teal);background:var(--bg3);}
+.comet-name{font-size:14px;font-weight:500;color:var(--teal);margin-bottom:2px;}
+.comet-type{font-size:11px;color:var(--muted2);margin-bottom:10px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.st{background:var(--bg4);border-radius:6px;padding:7px 9px;}
+.sl{font-size:10px;color:var(--muted2);margin-bottom:2px;}
+.sv{font-size:12px;font-weight:500;font-family:var(--mono);}
+.comet-desc{font-size:12px;color:var(--muted2);line-height:1.6;}
+.vis-bar{height:3px;border-radius:2px;background:var(--bg4);overflow:hidden;margin-top:10px;}
+.vis-fill{height:100%;border-radius:2px;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+.st2{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;}
+.fi{padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted2);line-height:1.5;}
+.fi:last-child{border-bottom:none;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="comets">
+<div class="page">
+  <div class="page-title">Comet Tracker</div>
+  <div class="page-sub">Visibility from <span id="loc-name">your location</span> · click any comet for full details</div>
+  <div class="layout">
+    <div>
+      <div class="section-title">Current & Recent Comets</div>
+      <div class="comet-grid" id="comet-grid"></div>
+      <div class="section-title">Historic Notable Comets</div>
+      <div class="comet-grid" id="historic-grid"></div>
+    </div>
+    <div>
+      <div class="sc"><div class="st2">Magnitude guide</div>
+        <div class="fi">Mag &lt;0 — rivals Venus in brightness</div>
+        <div class="fi">Mag 0–3 — naked eye from most locations</div>
+        <div class="fi">Mag 3–6 — naked eye from dark sites</div>
+        <div class="fi">Mag 6–8 — binoculars needed</div>
+        <div class="fi">Mag 8–12 — small telescope (100–200mm)</div>
+        <div class="fi">Mag &gt;12 — large telescope required</div>
+      </div>
+      <div class="sc"><div class="st2">How to observe</div>
+        <div class="fi">Use binoculars — most comets look like fuzzy stars, not movie comets</div>
+        <div class="fi">Observe from a dark site, away from city lights</div>
+        <div class="fi">Allow 20 min for eyes to dark-adapt before observing</div>
+        <div class="fi">The comet's tail always points away from the Sun</div>
+        <div class="fi">Track it over several nights — movement confirms it's a comet</div>
+      </div>
+      <div class="sc"><div class="st2">Discovery programs</div>
+        <div class="fi"><strong style="color:var(--text);">ATLAS</strong> — Asteroid Terrestrial-impact Last Alert System. Major comet/asteroid survey.</div>
+        <div class="fi"><strong style="color:var(--text);">Pan-STARRS</strong> — Panoramic Survey Telescope. Discovers dozens of comets yearly.</div>
+        <div class="fi"><strong style="color:var(--text);">ZTF</strong> — Zwicky Transient Facility. Wide-field survey.</div>
+        <div class="fi"><strong style="color:var(--text);">Rubin/LSST</strong> — Will dramatically increase discovery rates from ~2025.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button onclick="closeModal()" style="float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:20px;">✕</button>
+    <div style="font-size:18px;font-weight:500;color:var(--teal);margin-bottom:4px;" id="m-name"></div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;" id="m-type"></div>
+    <div id="m-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;" id="m-stats"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Overview</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.7;" id="m-desc"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Visibility from your location</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;" id="m-vis"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Orbital elements</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="m-orbital"></div>
+  </div>
+</div>
+
+<script>
+let userLat=59.9;
+window.onLocationReady=function(loc){
+  userLat=loc.lat;
+  document.getElementById('loc-name').textContent=loc.name||`${loc.lat.toFixed(1)}°N`;
+  renderAll();
+};
+
+const COMETS=[
+  {name:'C/2023 A3 (Tsuchinshan-ATLAS)',type:'Long-period comet',status:'Fading',sc:'b-amber',mag:8.5,q:0.391,period:'~80,000 yr',discovered:'2023',constellation:'Taurus',minLat:-90,maxLat:90,
+   desc:'One of the most spectacular comets of the decade, reaching magnitude ~0 in October 2024 — the brightest comet since Hale-Bopp 1997. Discovered jointly by Purple Mountain Observatory and ATLAS survey. Now fading rapidly. Its hyperbolic orbit suggests it may never return.',
+   vis:'Currently magnitude ~8.5, requires 100mm+ telescope. Low in western sky after sunset, fading ~0.5 mag/month.',
+   orbital:{Eccentricity:'1.000',Perihelion:'0.391 AU',Inclination:'139.0°',Period:'~80,000 yr',Perihelion_date:'2024 Sep 27'}},
+  {name:'C/2024 G3 (ATLAS)',type:'Sungrazing comet',status:'Fading',sc:'b-amber',mag:7.0,q:0.089,period:'Unknown',discovered:'2024',constellation:'Sagittarius',minLat:-90,maxLat:10,
+   desc:'Dramatic sungrazer that briefly reached naked-eye visibility during perihelion in January 2025. Survived its extremely close solar pass at just 13 million km — most sungrazers evaporate. Primarily a southern hemisphere object.',
+   vis:'Magnitude ~7, binoculars needed. Very low altitude from Scandinavia (below 0° from Norway). Best seen from 10°S or further south.',
+   orbital:{Eccentricity:'~1.0',Perihelion:'0.089 AU',Inclination:'26°',Period:'Unknown',Perihelion_date:'2025 Jan 13'}},
+  {name:'29P/Schwassmann-Wachmann',type:'Centaur / periodic comet',status:'Active',sc:'b-green',mag:10.5,q:5.72,period:'14.9 yr',discovered:'1927',constellation:'Leo',minLat:-90,maxLat:90,
+   desc:'One of the most active comets in the solar system, orbiting between Jupiter and Saturn. Experiences ~6 major outbursts per year, brightening by several magnitudes in hours. Nucleus diameter estimated at 60+ km. Circumpolar from Norway — visible year-round.',
+   vis:'Magnitude ~10.5, requires 150mm telescope. Circumpolar from Norway, so visible all year. Watch for outbursts that can bring it to magnitude 9.',
+   orbital:{Eccentricity:'0.044',Perihelion:'5.72 AU',Inclination:'9.4°',Period:'14.9 yr',Perihelion_date:'2019 Mar'}},
+  {name:'67P/Churyumov-Gerasimenko',type:'Jupiter-family comet',status:'Outbound',sc:'b-blue',mag:13.0,q:1.21,period:'6.44 yr',discovered:'1969',constellation:'Gemini',minLat:-90,maxLat:90,
+   desc:"Target of ESA's Rosetta mission 2014–2016. Rosetta orbited for two years and deployed the Philae lander — first ever soft landing on a comet. Has a distinctive rubber duck shape with two lobes joined by a narrow neck. Next perihelion 2028.",
+   vis:'Magnitude ~13, requires 250mm+ telescope. Will become easier as it approaches next perihelion in 2028.',
+   orbital:{Eccentricity:'0.641',Perihelion:'1.21 AU',Inclination:'7.04°',Period:'6.44 yr',Perihelion_date:'2021 Nov'}},
+  {name:'12P/Pons-Brooks',type:'Halley-type periodic comet',status:'Outbound',sc:'b-purple',mag:14.0,q:0.781,period:'71.3 yr',discovered:'1812',constellation:'Aries',minLat:0,maxLat:90,
+   desc:"Spectacular Halley-type comet that reached naked-eye visibility in April 2024. Nicknamed the 'devil comet' due to its horn-shaped coma during outbursts. Won't return until ~2095.",
+   vis:'Now magnitude ~14, fading rapidly. Requires large telescope. Next naked-eye opportunity: ~2095.',
+   orbital:{Eccentricity:'0.954',Perihelion:'0.781 AU',Inclination:'74.2°',Period:'71.3 yr',Perihelion_date:'2024 Apr 21'}},
+];
+
+const HISTORIC=[
+  {name:'C/1995 O1 (Hale-Bopp)',type:'Long-period comet',status:'Gone',sc:'b-purple',mag:null,q:0.914,period:'~2,520 yr',discovered:'1995',
+   desc:'The most observed comet in history. Naked-eye for 18 months — a record. Reached magnitude -1.8 in April 1997. Visible from city centres across the world. Brought comets to mainstream public attention.',
+   vis:'Will not return for ~2,520 years.',orbital:{Eccentricity:'0.995',Perihelion:'0.914 AU',Inclination:'89.4°',Period:'~2,520 yr',Perihelion_date:'1997 Apr 1'}},
+  {name:'1P/Halley',type:'Short-period comet',status:'Outbound',sc:'b-amber',mag:null,q:0.586,period:'75-76 yr',discovered:'Ancient',
+   desc:"The most famous comet. Observed since 240 BC. Last perihelion 1986, next 2061. Source of Eta Aquariid and Orionid meteor showers. Giotto spacecraft flew past in 1986.",
+   vis:'Next perihelion 2061. Currently very faint and far from Earth.',orbital:{Eccentricity:'0.967',Perihelion:'0.586 AU',Inclination:'162.3°',Period:'75.3 yr',Perihelion_date:'1986 Feb 9'}},
+  {name:'C/2020 F3 (NEOWISE)',type:'Long-period comet',status:'Gone',sc:'b-blue',mag:null,q:0.295,period:'~6,800 yr',discovered:'2020',
+   desc:'Brightest comet visible from the northern hemisphere since Hale-Bopp. Spectacularly visible in July 2020, reaching magnitude 0.5 with a 20° tail visible from suburban skies.',
+   vis:'Will not return for ~6,800 years.',orbital:{Eccentricity:'0.999',Perihelion:'0.295 AU',Inclination:'128.9°',Period:'~6,800 yr',Perihelion_date:'2020 Jul 3'}},
+];
+
+function visRating(c){
+  if(!c.mag)return{r:'Historic / gone',cls:'b-purple',pct:0};
+  const inLat=userLat>=c.minLat&&userLat<=c.maxLat;
+  if(!inLat)return{r:'Not visible from your latitude',cls:'b-red',pct:5};
+  if(c.mag<=4)return{r:'Naked eye',cls:'b-green',pct:100};
+  if(c.mag<=6)return{r:'Binoculars',cls:'b-green',pct:80};
+  if(c.mag<=9)return{r:'Small telescope',cls:'b-amber',pct:55};
+  if(c.mag<=12)return{r:'Medium telescope',cls:'b-amber',pct:35};
+  return{r:'Large telescope only',cls:'b-red',pct:15};
+}
+
+function makeCard(c,faded){
+  const vis=visRating(c);
+  const card=document.createElement('div');
+  card.className='comet-card';
+  if(faded)card.style.opacity='0.65';
+  card.innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+    <div><div class="comet-name">${c.name}</div><div class="comet-type">${c.type}</div></div>
+    <span class="badge ${c.sc}">${c.status}</span>
+  </div>
+  <div class="sg">
+    <div class="st"><div class="sl">Magnitude</div><div class="sv">${c.mag??'—'}</div></div>
+    <div class="st"><div class="sl">Perihelion</div><div class="sv">${c.q} AU</div></div>
+    <div class="st"><div class="sl">Period</div><div class="sv">${c.period}</div></div>
+    <div class="st"><div class="sl">Discovered</div><div class="sv">${c.discovered}</div></div>
+  </div>
+  <div class="comet-desc">${c.desc.substring(0,140)}...</div>
+  <div class="vis-bar"><div class="vis-fill" style="width:${vis.pct}%;background:${vis.pct>60?'var(--green)':vis.pct>30?'var(--amber)':'var(--red)'};"></div></div>
+  <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;">
+    <span style="color:var(--muted2);">From your location</span>
+    <span class="badge ${vis.cls}" style="font-size:9px;">${vis.r}</span>
+  </div>`;
+  card.onclick=()=>openComet(c);
+  return card;
+}
+
+function renderAll(){
+  const g=document.getElementById('comet-grid');g.innerHTML='';
+  COMETS.forEach(c=>g.appendChild(makeCard(c,false)));
+  const h=document.getElementById('historic-grid');h.innerHTML='';
+  HISTORIC.forEach(c=>h.appendChild(makeCard(c,true)));
+}
+
+function openComet(c){
+  const vis=visRating(c);
+  document.getElementById('m-name').textContent=c.name;
+  document.getElementById('m-type').textContent=c.type;
+  document.getElementById('m-badges').innerHTML=`<span class="badge ${c.sc}">${c.status}</span>${c.mag?`<span class="badge b-blue">Mag ${c.mag}</span>`:''}${c.constellation?`<span class="badge b-amber">${c.constellation}</span>`:''}`;
+  document.getElementById('m-stats').innerHTML=[['Magnitude',c.mag??'—'],['Perihelion',c.q+' AU'],['Period',c.period],['Discovered',c.discovered],['Visibility',vis.r],['From lat.',userLat.toFixed(1)+'°']].map(s=>`<div class="st"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div></div>`).join('');
+  document.getElementById('m-desc').textContent=c.desc;
+  document.getElementById('m-vis').textContent=c.vis||vis.r;
+  document.getElementById('m-orbital').innerHTML=Object.entries(c.orbital).map(([k,v])=>`<div class="st"><div class="sl">${k.replace(/_/g,' ')}</div><div class="sv">${v}</div></div>`).join('');
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+renderAll();
+</script>
+</body>
+</html>

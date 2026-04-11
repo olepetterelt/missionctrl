@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://missionctrl.no/sitemap.xml

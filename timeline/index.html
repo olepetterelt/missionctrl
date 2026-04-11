@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Interactive space history timeline from Sputnik 1957 to today — every major milestone, mission and milestone.">
+<meta property="og:title" content="Space History Timeline — MissionCtrl.no">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Space History Timeline — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;overflow-x:hidden;}
+.page-header{max-width:1600px;margin:0 auto;padding:20px 16px 0;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:16px;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.b-orange{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(251,146,60,.2);}
+
+/* Controls */
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:0 16px 14px;max-width:1600px;margin:0 auto;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.filter-btn:hover,.filter-btn.active{background:rgba(74,158,255,.08);color:var(--blue);border-color:rgba(74,158,255,.3);}
+.search-input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:11px;color:var(--text);outline:none;width:200px;transition:border-color .15s;}
+.search-input:focus{border-color:rgba(74,158,255,.4);}
+.search-input::placeholder{color:var(--muted);}
+.era-jumper{display:flex;gap:4px;flex-wrap:wrap;}
+.era-btn{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:10px;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.era-btn:hover{color:var(--text);border-color:var(--border2);}
+
+/* Scrubber bar */
+.scrubber-wrap{padding:0 16px 20px;max-width:1600px;margin:0 auto;}
+#scrubber-track{position:relative;height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;}
+.scrubber-fill{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,rgba(74,158,255,.15),rgba(74,158,255,.05));pointer-events:none;}
+.scrubber-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--blue);pointer-events:none;}
+.scrubber-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);padding:3px 0;}
+.decade-tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.06);pointer-events:none;}
+.decade-label{position:absolute;top:50%;transform:translateY(-50%);font-size:8px;color:var(--muted);font-family:var(--mono);pointer-events:none;}
+.scrubber-event-dot{position:absolute;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;pointer-events:none;}
+
+/* Main layout */
+.main{display:grid;grid-template-columns:1fr 300px;gap:0;max-width:1600px;margin:0 auto;}
+@media(max-width:900px){.main{grid-template-columns:1fr;}}
+
+/* Timeline */
+.timeline-wrap{padding:0 16px 40px;overflow-y:auto;max-height:calc(100vh - 260px);}
+.era-section{margin-bottom:8px;}
+.era-header{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;user-select:none;}
+.era-title{font-size:13px;font-weight:500;}
+.era-count{font-size:10px;color:var(--muted2);}
+.era-line{flex:1;height:1px;background:var(--border);}
+.events-list{padding-left:16px;}
+.event-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;border-radius:4px;padding:8px;}
+.event-item:hover{background:var(--bg3);}
+.event-item.selected{background:var(--bg4);border-left:2px solid var(--blue);padding-left:6px;}
+.event-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.event-date{font-size:10px;color:var(--muted2);font-family:var(--mono);min-width:70px;flex-shrink:0;margin-top:1px;}
+.event-content{flex:1;}
+.event-title{font-size:12px;font-weight:500;margin-bottom:2px;}
+.event-sub{font-size:11px;color:var(--muted2);}
+.event-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+
+/* Detail panel */
+.detail-panel{background:var(--bg2);border-left:1px solid var(--border);padding:20px;position:sticky;top:48px;max-height:calc(100vh - 48px);overflow-y:auto;}
+@media(max-width:900px){.detail-panel{position:static;border-left:none;border-top:1px solid var(--border);max-height:none;}}
+.detail-empty{color:var(--muted2);font-size:12px;text-align:center;padding:40px 0;}
+.detail-icon{font-size:40px;margin-bottom:12px;}
+.detail-title{font-size:17px;font-weight:500;margin-bottom:4px;line-height:1.3;}
+.detail-date{font-size:12px;color:var(--muted2);margin-bottom:12px;}
+.detail-desc{font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:14px;}
+.detail-stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.detail-stat:last-child{border-bottom:none;}
+.detail-key{color:var(--muted2);}
+.detail-val{font-family:var(--mono);text-align:right;max-width:160px;}
+.significance{background:var(--bg4);border-radius:7px;padding:10px 12px;font-size:11px;color:var(--muted2);line-height:1.65;margin-top:12px;}
+.significance strong{color:var(--text);}
+</style>
+</head>
+<body data-page="timeline">
+
+<div class="page-header">
+  <div class="page-title">Space History Timeline</div>
+  <div class="page-sub">From Sputnik to today — every major milestone in human spaceflight and exploration</div>
+</div>
+
+<div class="controls">
+  <input class="search-input" id="search-input" type="text" placeholder="Search events..." oninput="filterEvents()">
+  <button class="filter-btn active" onclick="setCategory('all',this)">All</button>
+  <button class="filter-btn" onclick="setCategory('human',this)">👨‍🚀 Human</button>
+  <button class="filter-btn" onclick="setCategory('robotic',this)">🤖 Robotic</button>
+  <button class="filter-btn" onclick="setCategory('first',this)">⭐ Firsts</button>
+  <button class="filter-btn" onclick="setCategory('disaster',this)">⚠️ Disasters</button>
+  <button class="filter-btn" onclick="setCategory('telescope',this)">🔭 Telescopes</button>
+  <div class="era-jumper" id="era-jumper"></div>
+</div>
+
+<div class="scrubber-wrap">
+  <div id="scrubber-track" onclick="scrubberClick(event)">
+    <div class="scrubber-fill" id="scrubber-fill"></div>
+    <div id="scrubber-dots"></div>
+    <div class="scrubber-marker" id="scrubber-marker" style="left:0;"></div>
+  </div>
+  <div class="scrubber-labels"><span>1957</span><span>1970</span><span>1980</span><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>Now</span></div>
+</div>
+
+<div class="main">
+  <div class="timeline-wrap" id="timeline-wrap">
+    <div id="timeline-content"></div>
+  </div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-empty">Select an event to see details</div>
+  </div>
+</div>
+
+<script>
+const EVENTS = [
+  // 1957-1960 Space Race begins
+  {date:'1957-10-04',title:'Sputnik 1 — first artificial satellite',org:'USSR',cat:['first','robotic'],icon:'🛰️',
+   desc:'The Soviet Union launched Sputnik 1, the first artificial Earth satellite, from Baikonur Cosmodrome. The 83.6kg sphere transmitted radio pulses on 20.005 and 40.002 MHz for 21 days, shocking the Western world and igniting the Space Race.',
+   stats:{Mass:'83.6 kg',Orbit:'215 × 939 km',Period:'96 minutes',Decay:'Jan 4, 1958'},
+   significance:'<strong>Why it mattered:</strong> The launch demonstrated Soviet rocket capability that could deliver nuclear warheads anywhere on Earth. It triggered the creation of NASA and ARPA, and the US National Defense Education Act. Arguably the most strategically significant single rocket launch in history.'},
+  {date:'1957-11-03',title:'Laika — first living creature in orbit',org:'USSR',cat:['first','human'],icon:'🐕',
+   desc:'Sputnik 2 carried Laika, a stray Moscow dog, becoming the first animal to orbit Earth. The spacecraft had no recovery system — Laika died from overheating within hours of launch, though this was not disclosed by the Soviets for decades.',
+   stats:{Mass:'508 kg',Passenger:'Laika (dog)',Duration:'5-7 hours (alive)',Orbit:'10 days total'},
+   significance:'<strong>Why it mattered:</strong> Proved that a living creature could survive launch and weightlessness. The ethical treatment of Laika remains controversial. Soviet propaganda used her as a symbol of socialist achievement.'},
+  {date:'1958-02-01',title:'Explorer 1 — first US satellite',org:'USA',cat:['first','robotic'],icon:'🛰️',
+   desc:'America\'s first successful satellite discovered the Van Allen radiation belts — energetic particle regions trapped by Earth\'s magnetic field. Launched by a Jupiter-C rocket developed by Wernher von Braun\'s team.',
+   stats:{Mass:'13.97 kg',Discovery:'Van Allen belts',Launch:'Cape Canaveral',Duration:'111 days transmitting'},
+   significance:'<strong>Why it mattered:</strong> The discovery of the Van Allen belts was the first major scientific finding of the Space Age, demonstrating that scientific missions could yield genuine discoveries.'},
+  {date:'1958-07-29',title:'NASA founded',org:'USA',cat:['first'],icon:'🏛️',
+   desc:'President Eisenhower signed the National Aeronautics and Space Act, creating NASA from the existing NACA. The agency absorbed 8,000 NACA employees and three major research laboratories.',
+   stats:{Signed:'July 29, 1958',Operational:'Oct 1, 1958',First admin:'T. Keith Glennan',Budget:'$100M initial'},
+   significance:'<strong>Why it mattered:</strong> Created a civilian space agency rather than a military one — a deliberate choice to contrast with Soviet secrecy. The model has been enormously influential, with ESA, JAXA, and other agencies following the civilian model.'},
+  {date:'1959-09-14',title:'Luna 2 — first spacecraft to reach the Moon',org:'USSR',cat:['first','robotic'],icon:'🌕',
+   desc:'Luna 2 became the first human-made object to reach the surface of another celestial body, impacting the Moon\'s surface near the Sea of Serenity. It carried Soviet pennants — the first human artifacts on another world.',
+   stats:{Launch:'Sep 12, 1959',Impact:'Sep 14, 1959',Speed:'3.3 km/s impact',Mass:'390.2 kg'},
+   significance:'<strong>Why it mattered:</strong> Demonstrated that reaching the Moon was achievable. Contained the first physical artifact from Earth left on another world.'},
+  // 1961-1969 Human spaceflight
+  {date:'1961-04-12',title:'Yuri Gagarin — first human in space',org:'USSR',cat:['first','human'],icon:'👨‍🚀',
+   desc:'Yuri Gagarin became the first human to travel into outer space and orbit Earth aboard Vostok 1. The flight lasted 108 minutes. His famous words on launch: "Poyekhali!" (Let\'s go!). He reached an altitude of 327 km.',
+   stats:{Duration:'108 minutes',Orbit:'1 orbit',Max altitude:'327 km',Age:'27 years old'},
+   significance:'<strong>Why it mattered:</strong> Proved humans could survive in space. Gagarin became the most famous person on Earth overnight. The flight intensified US urgency — Kennedy\'s Moon speech followed weeks later.'},
+  {date:'1961-05-05',title:'Alan Shepard — first American in space',org:'USA',cat:['first','human'],icon:'👨‍🚀',
+   desc:'Alan Shepard became the first American in space aboard Freedom 7 in a suborbital flight lasting 15 minutes 22 seconds, reaching 187 km altitude. Unlike Gagarin, Shepard had manual control of his capsule.',
+   stats:{Duration:'15 min 22 sec',Type:'Suborbital',Max altitude:'187 km',Splashdown:'Atlantic Ocean'},
+   significance:'<strong>Why it mattered:</strong> America\'s first human spaceflight came 23 days after Gagarin\'s orbital flight. Shepard\'s manual control demonstrated US philosophy of pilot involvement vs. Soviet fully automated approach.'},
+  {date:'1961-05-25',title:'Kennedy announces Moon program',org:'USA',cat:['first'],icon:'🎤',
+   desc:'President Kennedy addressed Congress: "I believe that this nation should commit itself to achieving the goal, before this decade is out, of landing a man on the Moon and returning him safely to the Earth." One of the most consequential political speeches in history.',
+   stats:{Date:'May 25, 1961',Congress:'Joint session',Timeline:'Before 1970',Cost:'$25 billion (Apollo total)'},
+   significance:'<strong>Why it mattered:</strong> Set a clear, audacious, time-bounded goal. At the time, the total US human spaceflight experience was 15 minutes. This speech launched a program that employed 400,000 people and advanced technology by decades.'},
+  {date:'1963-06-16',title:'Valentina Tereshkova — first woman in space',org:'USSR',cat:['first','human'],icon:'👩‍🚀',
+   desc:'Valentina Tereshkova became the first woman to fly in space aboard Vostok 6, completing 48 orbits over nearly 3 days. A textile worker and amateur skydiver, she was selected from 400 applicants.',
+   stats:{Duration:'2 days 22 hours',Orbits:'48',Spacecraft:'Vostok 6',Age:'26 years old'},
+   significance:'<strong>Why it mattered:</strong> Tereshkova remains the only woman to have flown solo in space. No woman flew again until 1982 (Savitskaya). American women would not fly until Sally Ride in 1983.'},
+  {date:'1965-03-18',title:'Alexei Leonov — first spacewalk (EVA)',org:'USSR',cat:['first','human'],icon:'🧑‍🚀',
+   desc:'Alexei Leonov performed the first spacewalk (Extra-Vehicular Activity) from Voskhod 2, spending 12 minutes outside the spacecraft. His spacesuit inflated in vacuum, nearly preventing him from re-entering — he had to deflate it to fit through the airlock.',
+   stats:{Duration:'12 minutes outside',Tether:'5.35 m',Suit pressure:'0.4 atm',Problem:'Suit overinflation'},
+   significance:'<strong>Why it mattered:</strong> Demonstrated humans could work outside a spacecraft — essential for Moon missions and later satellite servicing. Leonov nearly died when his suit prevented re-entry.'},
+  {date:'1966-02-03',title:'Luna 9 — first soft Moon landing',org:'USSR',cat:['first','robotic'],icon:'🌕',
+   desc:'Luna 9 made the first successful soft landing on the Moon and transmitted the first photographs from the lunar surface. Scientists had feared the Moon might be covered in deep dust that would swallow a spacecraft — Luna 9 proved the surface was solid.',
+   stats:{Landing:'Feb 3, 1966',Photos:'27 panoramic images',Surface:'Solid (confirmed)',Region:'Ocean of Storms'},
+   significance:'<strong>Why it mattered:</strong> Settled the "deep dust" debate about the lunar surface. The photos were also intercepted and published by Jodrell Bank in the UK before the Soviets released them.'},
+  {date:'1967-01-27',title:'Apollo 1 fire — three astronauts killed',org:'USA',cat:['disaster'],icon:'🔥',
+   desc:'A cabin fire during a launch rehearsal killed astronauts Gus Grissom, Ed White, and Roger Chaffee. The pure oxygen atmosphere and flammable materials created a catastrophic fire. The hatch could not be opened from inside.',
+   stats:{Date:'Jan 27, 1967',Casualties:'Grissom, White, Chaffee',Cause:'Electrical spark in O₂',Result:'18-month program pause'},
+   significance:'<strong>Why it mattered:</strong> Forced a complete redesign of the Apollo capsule, adding a quick-opening hatch and removing flammable materials. Delayed the program nearly two years but may have prevented a worse disaster in flight.'},
+  {date:'1968-12-21',title:'Apollo 8 — first humans to leave Earth orbit',org:'USA',cat:['first','human'],icon:'🌍',
+   desc:'Apollo 8 carried Frank Borman, Jim Lovell and Bill Anders to the Moon — the first humans to leave Earth\'s orbit. They orbited the Moon 10 times on Christmas Eve, broadcasting the "Earthrise" photo and reading Genesis. One of the most watched TV broadcasts ever.',
+   stats:{Crew:'Borman, Lovell, Anders',Orbits:'10 lunar orbits',Duration:'6 days 3 hours',Photo:'Earthrise'},
+   significance:'<strong>Why it mattered:</strong> "Earthrise" — the photo of Earth rising above the Moon — became one of the most influential photographs in history, helping launch the environmental movement.'},
+  {date:'1969-07-20',title:'Apollo 11 — first Moon landing',org:'USA',cat:['first','human'],icon:'🌕',
+   desc:'Neil Armstrong and Buzz Aldrin landed the Eagle lunar module in the Sea of Tranquility while Michael Collins orbited above. Armstrong stepped onto the surface at 02:56 UTC July 21. "One small step for man, one giant leap for mankind." 530 million watched on TV.',
+   stats:{Crew:'Armstrong, Aldrin, Collins',Landing site:'Sea of Tranquility',Surface time:'2h 31m',Samples:'21.5 kg returned'},
+   significance:'<strong>Why it mattered:</strong> The single greatest achievement of the Space Age. Achieved Kennedy\'s goal with 5 months to spare. Only 66 years after the Wright brothers\' first flight, humans walked on another world.'},
+  {date:'1970-04-11',title:'Apollo 13 — "Houston, we have a problem"',org:'USA',cat:['disaster','human'],icon:'⚠️',
+   desc:'An oxygen tank exploded on the way to the Moon, crippling the spacecraft. The crew used the Lunar Module as a lifeboat, looping around the Moon and returning safely — one of NASA\'s greatest feats of problem-solving. "Successful failure."',
+   stats:{Crew:'Lovell, Haise, Swigert',Incident:'Oxygen tank explosion',Date:'Apr 13, 1970',Return:'Apr 17, 1970'},
+   significance:'<strong>Why it mattered:</strong> Demonstrated NASA\'s ability to improvise under pressure. The mission has become a case study in engineering problem-solving, teamwork, and crisis management.'},
+  // 1970s
+  {date:'1971-04-19',title:'Salyut 1 — first space station',org:'USSR',cat:['first'],icon:'🛸',
+   desc:'The Soviet Union launched Salyut 1, the world\'s first space station. Soyuz 11 docked successfully in June, with a crew of 3 — but all three cosmonauts died during re-entry due to a valve failure that depressurised the capsule.',
+   stats:{Launch:'Apr 19, 1971',Crew capacity:'3',Orbit:'200 km',Operated:'175 days'},
+   significance:'<strong>Why it mattered:</strong> Inaugurated the era of space stations. The Soyuz 11 tragedy killed the only cosmonauts to die in space (as opposed to during ascent or landing), and led to redesigned spacecraft.'},
+  {date:'1972-12-14',title:'Apollo 17 — last humans on the Moon',org:'USA',cat:['human'],icon:'🌕',
+   desc:'Eugene Cernan became the last human to walk on the Moon when he stepped off the lunar surface. Gene Cernan\'s last words on the Moon: "...we shall return, with peace and hope for all mankind." No human has returned since.',
+   stats:{Crew:'Cernan, Schmitt, Evans',Surface time:'22h 4m',Samples:'110.5 kg',Distance driven:'35.9 km'},
+   significance:'<strong>Why it mattered:</strong> The end of an era. Apollo 17 had the only scientist to visit the Moon (geologist Harrison Schmitt). The program was cut short by budget pressures — Apollos 18, 19 and 20 were cancelled.'},
+  {date:'1973-05-14',title:'Skylab — first US space station',org:'USA',cat:['first'],icon:'🛸',
+   desc:'Skylab was America\'s first space station, launched unmanned and later occupied by three crews totalling 171 days in orbit. It was damaged during launch but saved by a heroic repair mission. It reentered over Australia in 1979.',
+   stats:{Mass:'77 tonnes',Crews:'3 expeditions',Total time:'171 days occupied',Reentry:'Jul 11, 1979'},
+   significance:'<strong>Why it mattered:</strong> Proved long-duration spaceflight was survivable and scientifically productive. Conducted extensive solar astronomy and Earth observation.'},
+  {date:'1975-07-17',title:'Apollo-Soyuz — US/Soviet handshake in space',org:'USA/USSR',cat:['first','human'],icon:'🤝',
+   desc:'The Apollo-Soyuz Test Project saw American and Soviet spacecraft dock in orbit during the Cold War. Astronauts Thomas Stafford and cosmonaut Alexei Leonov shook hands in space — the first international human spaceflight mission.',
+   stats:{Date:'Jul 17, 1975',Docking:'44 hours 56 min',Crews:'Stafford/Brand/Slayton + Leonov/Kubasov',Symbolic:'US-Soviet détente'},
+   significance:'<strong>Why it mattered:</strong> A symbolic end to the Space Race and beginning of international cooperation. Docking hardware from this mission later evolved into the Shuttle-Mir and ISS programs.'},
+  {date:'1977-09-05',title:'Voyager 1 launched — humanity\'s farthest object',org:'USA',cat:['first','robotic'],icon:'🚀',
+   desc:'Voyager 1 launched on September 5, 1977 (after Voyager 2, launched August 20). It has since become the farthest human-made object from Earth, crossing into interstellar space in 2012. It carries the Golden Record with sounds and images of Earth.',
+   stats:{Launch:'Sep 5, 1977',Distance:'24+ billion km',Status:'Interstellar space',Powered:'Until ~2025'},
+   significance:'<strong>Why it mattered:</strong> The first human-made object to leave the solar system. Its Golden Record — curated by Carl Sagan — is humanity\'s message to any civilisation that might find it in millions of years.'},
+  // 1980s
+  {date:'1981-04-12',title:'Space Shuttle — first reusable spacecraft',org:'USA',cat:['first','human'],icon:'🚀',
+   desc:'Space Shuttle Columbia launched on STS-1, piloted by John Young and Robert Crippen — the first orbital spacecraft designed for reuse. The Shuttle flew 135 missions over 30 years, building the ISS and deploying the Hubble Space Telescope.',
+   stats:{Crew:'Young, Crippen',Mission:'STS-1',Date:'Apr 12, 1981',Orbiters:'5 built (2 lost)'},
+   significance:'<strong>Why it mattered:</strong> First truly reusable spacecraft. Flew 355 unique astronauts over 30 years. Despite two catastrophic losses, it enabled the ISS and transformed our understanding of reusability economics.'},
+  {date:'1983-06-18',title:'Sally Ride — first American woman in space',org:'USA',cat:['first','human'],icon:'👩‍🚀',
+   desc:'Sally Ride became the first American woman in space on STS-7, 20 years after Valentina Tereshkova. She was selected from 8,000 applicants. After her spaceflight career, she became a prominent science educator and advocate.',
+   stats:{Mission:'STS-7',Date:'Jun 18, 1983',Age:'32 — youngest US astronaut to date',Orbits:'97'},
+   significance:'<strong>Why it mattered:</strong> A landmark for American women in STEM. Ride\'s achievement inspired generations of female scientists and astronauts. The number of women in NASA\'s astronaut corps grew significantly afterward.'},
+  {date:'1986-01-28',title:'Challenger disaster — 7 crew killed',org:'USA',cat:['disaster'],icon:'💥',
+   desc:'Space Shuttle Challenger broke apart 73 seconds after launch due to an O-ring failure in the right solid rocket booster in cold temperatures. All 7 crew members died, including Christa McAuliffe, a schoolteacher. Watched live on TV by millions of schoolchildren.',
+   stats:{Date:'Jan 28, 1986',Crew:'7 killed',Cause:'O-ring failure at low temp',Grounding:'32 months'},
+   significance:'<strong>Why it mattered:</strong> The Rogers Commission revealed NASA\'s organisational culture problems — engineers had warned about O-rings in cold weather but were overruled. Richard Feynman demonstrated the O-ring failure with ice water at the press conference.'},
+  {date:'1986-02-19',title:'Mir space station launched',org:'USSR',cat:['first'],icon:'🛸',
+   desc:'Mir was the first modular space station, assembled in orbit over 10 years. It was continuously inhabited for nearly 10 years and hosted cosmonauts and astronauts from 12 nations. NASA Shuttle missions docked with Mir 1995-1998.',
+   stats:{Launch:'Feb 19, 1986',Mass:'137 tonnes',Inhabited:'9 years 357 days continuously',Reentry:'Mar 23, 2001'},
+   significance:'<strong>Why it mattered:</strong> Proved long-duration human spaceflight feasible. Hosted the first long-duration stay (437 days by Valery Polyakov). The Shuttle-Mir program directly enabled the International Space Station.'},
+  {date:'1990-04-24',title:'Hubble Space Telescope launched',org:'USA',cat:['first','telescope'],icon:'🔭',
+   desc:'Hubble was launched on STS-31, but a flaw in the primary mirror caused blurry images — a humiliating setback. A 1993 servicing mission installed corrective optics, and Hubble went on to transform astronomy with iconic images like the Pillars of Creation.',
+   stats:{Launch:'Apr 24, 1990',Mirror:'2.4 m diameter',Orbit:'547 km',Servicing:'5 missions (1993-2009)'},
+   significance:'<strong>Why it mattered:</strong> Has produced more than 1.5 million observations over 30+ years. Helped determine the age of the universe and confirmed dark energy. The 1993 repair mission is one of NASA\'s most impressive achievements.'},
+  // 1990s-2000s
+  {date:'1997-07-04',title:'Mars Pathfinder — Sojourner rover lands',org:'USA',cat:['first','robotic'],icon:'🤖',
+   desc:'Mars Pathfinder landed on Mars on US Independence Day using airbags, deploying the Sojourner rover — the first wheeled vehicle on Mars. The mission exceeded its planned 7-day lifespan by months and revived public interest in Mars exploration.',
+   stats:{Landing:'Jul 4, 1997',Rover:'Sojourner (10.5 kg)',Operated:'83 days',Images:'17,000 images'},
+   significance:'<strong>Why it mattered:</strong> First Mars rover. Demonstrated the low-cost "faster, better, cheaper" approach. The internet live coverage set web traffic records in 1997.'},
+  {date:'1998-11-20',title:'ISS construction begins',org:'International',cat:['first'],icon:'🛸',
+   desc:'The Zarya control module — the first element of the International Space Station — launched on a Russian Proton rocket. The ISS now involves 15 nations and is the largest human-made structure in space, continuously inhabited since November 2000.',
+   stats:{First element:'Zarya, Nov 20, 1998',Mass:'~420 tonnes',Modules:'16+',Crew:'Continuous since Oct 2000'},
+   significance:'<strong>Why it mattered:</strong> The largest and most complex engineering project in human history. A symbol of post-Cold War international cooperation — the US and Russia built it together despite geopolitical tensions.'},
+  {date:'2001-04-28',title:'Dennis Tito — first space tourist',org:'Russia/Private',cat:['first','human'],icon:'💰',
+   desc:'American millionaire Dennis Tito paid $20 million for a week aboard the ISS, becoming the first private space tourist. NASA initially refused to allow it; Russia proceeded anyway. He orbited Earth 128 times over 7 days 22 hours.',
+   stats:{Cost:'~$20 million',Duration:'7 days 22 hours',Orbits:'128',Age:'60 years old'},
+   significance:'<strong>Why it mattered:</strong> Opened the door to commercial spaceflight. Demonstrated that wealthy civilians could survive in space. Led directly to the commercial spaceflight industry we have today.'},
+  {date:'2003-02-01',title:'Columbia disaster — 7 crew killed on re-entry',org:'USA',cat:['disaster'],icon:'💥',
+   desc:'Space Shuttle Columbia broke apart during re-entry due to damage to thermal protection tiles caused by foam impact during launch. All 7 crew members were killed. The accident led to a 2.5-year grounding and accelerated the Shuttle\'s retirement.',
+   stats:{Date:'Feb 1, 2003',Crew:'7 killed',Cause:'Foam impact damage to heat shield',Grounding:'29 months'},
+   significance:'<strong>Why it mattered:</strong> A second organisational failure at NASA — the Columbia Accident Investigation Board found systemic management problems similar to Challenger. Led to the Vision for Space Exploration and ultimately the Moon to Mars program.'},
+  {date:'2004-01-04',title:'Mars Exploration Rovers — Spirit and Opportunity',org:'USA',cat:['robotic'],icon:'🤖',
+   desc:'Spirit landed January 4 and Opportunity on January 25, 2004. Both were designed for 90-day missions. Opportunity operated for 14 years and 46 days — until a global dust storm silenced it in 2018. Together they drove over 52 km on Mars.',
+   stats:{Spirit:'6 years, 2 months',Opportunity:'14 years, 46 days',Total distance:'52+ km combined',Discovery:'Evidence of ancient water'},
+   significance:'<strong>Why it mattered:</strong> Found definitive evidence that Mars had liquid water in its distant past. Opportunity\'s extraordinary longevity became a symbol of scientific perseverance.'},
+  {date:'2008-09-28',title:'SpaceX Falcon 1 — first private orbital rocket',org:'SpaceX',cat:['first'],icon:'🚀',
+   desc:'Falcon 1 became the first privately developed liquid-fuelled rocket to reach Earth orbit, on its fourth attempt. SpaceX had burned through most of its funding on the three previous failures. This launch saved the company and changed the space industry.',
+   stats:{Date:'Sep 28, 2008',Attempt:'4th','Founders\' investment':'$100M+',Result:'Changed industry'},
+   significance:'<strong>Why it mattered:</strong> Proved commercial space launch was viable. SpaceX went on to make launch costs 90% cheaper than traditional providers. Triggered the new space industry.'},
+  // 2010s
+  {date:'2012-08-06',title:'Curiosity rover lands on Mars',org:'USA',cat:['robotic'],icon:'🤖',
+   desc:'The Mars Science Laboratory Curiosity rover landed using the revolutionary "sky crane" powered descent system — lowered on cables from a hovering descent stage. Curiosity is nuclear-powered and is still operating in 2026, over 4,000 Martian days later.',
+   stats:{Landing:'Aug 6, 2012',Mass:'899 kg',Power:'Nuclear (RTG)',Status:'Still operating (2026)'},
+   significance:'<strong>Why it mattered:</strong> Found that Mars had habitable conditions billions of years ago — not just liquid water but the right chemistry for life. The sky crane landing system was validated for future Mars missions.'},
+  {date:'2015-12-21',title:'SpaceX lands Falcon 9 booster — reusability achieved',org:'SpaceX',cat:['first'],icon:'🚀',
+   desc:'For the first time in history, a commercial orbital rocket booster returned to land vertically on its launch site at Cape Canaveral. The sight of the booster hovering down on rocket engines was unlike anything seen before. Changed rocketry economics forever.',
+   stats:{Date:'Dec 21, 2015',Mission:'OG-2',Landing site:'LZ-1 Cape Canaveral',Booster:'B1019'},
+   significance:'<strong>Why it mattered:</strong> Proved that orbital rocket boosters could be reused — dramatically cutting launch costs. Falcon 9 boosters now routinely fly 10-15 times, reducing cost per kg to LEO from ~$54,000 to under $3,000.'},
+  {date:'2016-09-27',title:'Elon Musk unveils Interplanetary Transport System',org:'SpaceX',cat:['human'],icon:'🚀',
+   desc:'Elon Musk presented SpaceX\'s vision for colonising Mars at the International Astronautical Congress in Guadalajara. The presentation detailed a fully reusable, methane-fuelled system capable of carrying 100 people to Mars. Later evolved into Starship.',
+   stats:{Presentation:'IAC Guadalajara',Fuel:'Methane/LOX',Capacity:'100+ passengers',Evolution:'Became Starship'},
+   significance:'<strong>Why it mattered:</strong> Forced the global aerospace community to take Mars colonisation seriously. Methane choice (for Mars fuel synthesis) influenced other programs. The architecture has since been simplified and renamed Starship.'},
+  {date:'2019-04-10',title:'First image of a black hole',org:'Event Horizon Telescope',cat:['first','telescope'],icon:'⚫',
+   desc:'The Event Horizon Telescope Collaboration released the first direct image of a black hole\'s shadow — the supermassive black hole M87*, 6.5 billion solar masses and 55 million light-years away. 347 researchers and 8 radio observatories on 4 continents combined their data.',
+   stats:{Object:'M87*',Mass:'6.5 billion solar masses',Distance:'55 million light-years',Resolution:'20 microarcseconds'},
+   significance:'<strong>Why it mattered:</strong> Direct visual confirmation of black holes — previously only inferred from indirect evidence. The orange ring is light bent by gravity before falling in. In 2022 the EHT imaged Sagittarius A* — our own galaxy\'s central black hole.'},
+  {date:'2019-07-20',title:'Apollo 11 50th anniversary',org:'Global',cat:['human'],icon:'🌕',
+   desc:'The world celebrated the 50th anniversary of the Apollo 11 Moon landing. Buzz Aldrin and Michael Collins (Neil Armstrong died in 2012) participated in ceremonies. A renewed focus on returning to the Moon began with the Artemis program.',
+   stats:{Anniversary:'50 years',Date:'Jul 20, 2019',Collins survived:'Yes (died 2021)',Aldrin:'Survived (born 1930)'},
+   significance:'<strong>Why it mattered:</strong> Marked the longest gap in human Moon visits. At 50 years with no return, the anniversary drove political momentum for Artemis.'},
+  {date:'2020-05-30',title:'SpaceX Crew Dragon — first commercial crewed orbital launch',org:'SpaceX/NASA',cat:['first','human'],icon:'🚀',
+   desc:'Bob Behnken and Doug Hurley launched to the ISS on SpaceX\'s Crew Dragon capsule — the first crewed orbital launch from American soil since the Shuttle\'s retirement in 2011, and the first crewed orbital mission by a commercial company.',
+   stats:{Crew:'Behnken, Hurley',Duration:'19 hours to ISS',Return:'Aug 2, 2020',Significance:'First commercial crewed orbital'},
+   significance:'<strong>Why it mattered:</strong> Ended US reliance on Russia\'s Soyuz ($80M per seat) for ISS access. Validated NASA\'s commercial crew strategy. SpaceX now operates all US astronaut flights.'},
+  // 2021-present
+  {date:'2021-02-18',title:'Perseverance rover lands on Mars',org:'USA',cat:['robotic'],icon:'🤖',
+   desc:'Perseverance landed in Jezero Crater — an ancient Martian lake. It carries the Ingenuity helicopter (first powered flight on another planet) and is collecting rock samples for eventual return to Earth. Has found organic molecules.',
+   stats:{Landing:'Feb 18, 2021',Location:'Jezero Crater',Helicopter:'Ingenuity',Samples:'Collecting for return'},
+   significance:'<strong>Why it mattered:</strong> Ingenuity achieved the first powered flight on another planet. Perseverance\'s sample tubes will be returned to Earth by the Mars Sample Return mission — the most ambitious robotic mission ever planned.'},
+  {date:'2021-07-11',title:'Virgin Galactic — Richard Branson reaches space',org:'Virgin Galactic',cat:['first','human'],icon:'🚀',
+   desc:'Richard Branson reached the edge of space (86 km) aboard VSS Unity, beating Jeff Bezos\'s Blue Origin New Shepard flight by 9 days. The suborbital tourism era had begun, with debate over whether 86 km vs. 100 km (Kármán line) "counts" as space.',
+   stats:{Date:'Jul 11, 2021',Altitude:'86 km',Duration:'~4 min weightlessness',Crew:'6 total'},
+   significance:'<strong>Why it mattered:</strong> Opened the commercial space tourism industry. Tickets were $250,000-$450,000. Blue Origin and Virgin Galactic have since flown dozens of paying customers.'},
+  {date:'2021-12-25',title:'James Webb Space Telescope launched',org:'International',cat:['first','telescope'],icon:'🔭',
+   desc:'JWST launched on Christmas Day 2021 from Kourou aboard an Ariane 5, after 25 years of development and $10 billion. It unfolded over 29 days in a carefully choreographed sequence. First images released July 12, 2022 — the deepest infrared images of the universe ever taken.',
+   stats:{Launch:'Dec 25, 2021',Cost:'$10 billion',Mirror:'6.5 m (18 segments)',Orbit:'L2 (1.5M km from Earth)'},
+   significance:'<strong>Why it mattered:</strong> Can see the first galaxies formed 400 million years after the Big Bang. Its infrared capabilities allow study of exoplanet atmospheres — including potential biosignatures. JWST is fundamentally changing astronomy.'},
+  {date:'2022-11-16',title:'NASA Artemis I — first SLS launch',org:'USA',cat:['human'],icon:'🚀',
+   desc:'NASA\'s Space Launch System finally flew after years of delays and cost overruns, sending an uncrewed Orion capsule around the Moon. The mission lasted 25 days and successfully returned to Earth. Set the stage for Artemis II\'s crewed Moon flyby.',
+   stats:{Launch:'Nov 16, 2022',Mission:'Uncrewed lunar flyby',Duration:'25 days',Splashdown:'Dec 11, 2022'},
+   significance:'<strong>Why it mattered:</strong> Proved SLS and Orion work together. At $4B+ per flight, SLS is extraordinarily expensive — fuelling debate about whether Starship would be a better investment for Moon missions.'},
+  {date:'2023-08-23',title:'India\'s Chandrayaan-3 — first south polar Moon landing',org:'India',cat:['first','robotic'],icon:'🌕',
+   desc:'India became the first country to land a spacecraft at the lunar south pole, where water ice deposits may exist. India joined the US, USSR and China as the only countries to soft-land on the Moon. The mission cost just $75 million.',
+   stats:{Date:'Aug 23, 2023',Agency:'ISRO',Location:'Lunar south pole',Cost:'$75 million'},
+   significance:'<strong>Why it mattered:</strong> The south pole is the most strategically important location on the Moon for future bases due to water ice. At $75M, it showed India had world-class space capabilities. Russia\'s Luna-25 crashed the same week.'},
+  {date:'2024-10-13',title:'SpaceX catches Starship booster with tower arms',org:'SpaceX',cat:['first'],icon:'🚀',
+   desc:'Super Heavy booster returned to the Starbase launch site and was caught mid-air by the "Mechazilla" mechanical arms on the launch tower — the first time a booster of this size had been caught rather than landing on legs. An astonishing engineering feat.',
+   stats:{Date:'Oct 13, 2024',Mission:'IFT-5',Booster:'Super Heavy B12',Method:'Tower arm catch'},
+   significance:'<strong>Why it mattered:</strong> If Starship achieves full booster + ship catch and reuse, launch costs could fall to under $100/kg to LEO — a 300× reduction from the Shuttle era. This single catch demonstration justified Starship\'s entire development.'},
+  {date:'2026-04-01',title:'Artemis II — first crewed Moon voyage since Apollo',org:'NASA/CSA',cat:['first','human'],icon:'🌕',
+   desc:'Artemis II carried four astronauts — Reid Wiseman, Victor Glover, Christina Koch and Canadian Jeremy Hansen — on a 10-day journey around the Moon. The first humans to leave low Earth orbit since Apollo 17 in December 1972.',
+   stats:{Launch:'Apr 1, 2026',Crew:'Wiseman, Glover, Koch, Hansen',Duration:'~10 days',Significance:'First humans beyond LEO since 1972'},
+   significance:'<strong>Why it mattered:</strong> Returned humans to the vicinity of the Moon for the first time in over 50 years. Sets the stage for Artemis III — the first Moon landing since 1972.'},
+];
+
+const ERAS = [
+  {label:'Space Race',start:1957,end:1969,col:'var(--red)'},
+  {label:'Stations',start:1970,end:1980,col:'var(--amber)'},
+  {label:'Shuttle Era',start:1981,end:1999,col:'var(--blue)'},
+  {label:'2000s',start:2000,end:2010,col:'var(--teal)'},
+  {label:'Commercial',start:2010,end:2020,col:'var(--green)'},
+  {label:'2020s',start:2020,end:2030,col:'var(--purple)'},
+];
+
+const CAT_COLORS = {first:'var(--amber)',human:'var(--blue)',robotic:'var(--teal)',disaster:'var(--red)',telescope:'var(--purple)'};
+
+let activeCategory = 'all';
+let activeSearch = '';
+let selectedEvent = null;
+
+function catColor(cats) {
+  if(cats.includes('disaster')) return CAT_COLORS.disaster;
+  if(cats.includes('first')) return CAT_COLORS.first;
+  if(cats.includes('human')) return CAT_COLORS.human;
+  if(cats.includes('robotic')) return CAT_COLORS.robotic;
+  if(cats.includes('telescope')) return CAT_COLORS.telescope;
+  return 'var(--muted2)';
+}
+
+function catBadge(cat) {
+  const map = {first:['b-amber','First'],human:['b-blue','Human'],robotic:['b-teal','Robotic'],disaster:['b-red','Disaster'],telescope:['b-purple','Telescope']};
+  const c = map[cat];
+  return c ? `<span class="badge ${c[0]}">${c[1]}</span>` : '';
+}
+
+function setCategory(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+function filterEvents() {
+  activeSearch = document.getElementById('search-input').value.toLowerCase();
+  renderTimeline();
+}
+
+function filteredEvents() {
+  return EVENTS.filter(e => {
+    const catMatch = activeCategory === 'all' || e.cat.includes(activeCategory);
+    const searchMatch = !activeSearch || e.title.toLowerCase().includes(activeSearch) || e.desc.toLowerCase().includes(activeSearch) || e.org.toLowerCase().includes(activeSearch);
+    return catMatch && searchMatch;
+  });
+}
+
+function renderTimeline() {
+  const events = filteredEvents();
+  const byEra = {};
+  ERAS.forEach(er => byEra[er.label] = []);
+  events.forEach(e => {
+    const year = parseInt(e.date.split('-')[0]);
+    const era = ERAS.find(er => year >= er.start && year < er.end);
+    if(era) byEra[era.label].push(e);
+  });
+
+  const wrap = document.getElementById('timeline-content');
+  wrap.innerHTML = '';
+
+  ERAS.forEach(era => {
+    const eraEvents = byEra[era.label] || [];
+    if(!eraEvents.length) return;
+    const sec = document.createElement('div');
+    sec.className = 'era-section';
+    sec.id = 'era-'+era.label.replace(/\s/g,'-');
+    sec.innerHTML = `<div class="era-header"><div class="era-title" style="color:${era.col};">${era.label}</div><div class="era-count">${eraEvents.length} events</div><div class="era-line" style="background:${era.col};opacity:.15;"></div></div>`;
+    const list = document.createElement('div');
+    list.className = 'events-list';
+    eraEvents.forEach(e => {
+      const item = document.createElement('div');
+      item.className = 'event-item' + (selectedEvent === e ? ' selected' : '');
+      item.innerHTML = `
+        <div class="event-dot" style="background:${catColor(e.cat)};"></div>
+        <div class="event-date">${e.date.split('-')[0]}-${e.date.split('-')[1]}</div>
+        <div class="event-content">
+          <div class="event-title">${e.icon} ${e.title}</div>
+          <div class="event-sub">${e.org}</div>
+          <div class="event-tags">${[...new Set(e.cat)].map(c => catBadge(c)).join('')}</div>
+        </div>`;
+      item.onclick = () => selectEvent(e);
+      list.appendChild(item);
+    });
+    sec.appendChild(list);
+    wrap.appendChild(sec);
+  });
+
+  buildScrubber();
+}
+
+function selectEvent(e) {
+  selectedEvent = e;
+  renderTimeline();
+  const panel = document.getElementById('detail-panel');
+  const statRows = Object.entries(e.stats || {}).map(([k,v]) => `<div class="detail-stat"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('');
+  panel.innerHTML = `
+    <div class="detail-icon">${e.icon}</div>
+    <div class="detail-title">${e.title}</div>
+    <div class="detail-date">${new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} · ${e.org}</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${[...new Set(e.cat)].map(c=>catBadge(c)).join('')}</div>
+    <div class="detail-desc">${e.desc}</div>
+    ${statRows ? `<div style="margin-bottom:10px;">${statRows}</div>` : ''}
+    ${e.significance ? `<div class="significance">${e.significance}</div>` : ''}`;
+
+  // Scroll to scrubber position
+  const year = parseInt(e.date.split('-')[0]);
+  updateScrubberMarker(year);
+}
+
+const MIN_YEAR = 1957, MAX_YEAR = 2027;
+
+function buildScrubber() {
+  const track = document.getElementById('scrubber-track');
+  const dots = document.getElementById('scrubber-dots');
+  dots.innerHTML = '';
+  const W = track.offsetWidth;
+
+  // Decade ticks
+  for(let y = 1960; y <= 2020; y += 10) {
+    const pct = (y - MIN_YEAR) / (MAX_YEAR - MIN_YEAR);
+    const tick = document.createElement('div');
+    tick.className = 'decade-tick';
+    tick.style.left = (pct*100)+'%';
+    const lbl = document.createElement('div');
+    lbl.className = 'decade-label';
+    lbl.textContent = y;
+    lbl.style.left = (pct*100-2)+'%';
+    dots.appendChild(tick);
+    dots.appendChild(lbl);
+  }
+
+  // Event dots
+  filteredEvents().forEach(e => {
+    const year = parseInt(e.date.split('-')[0]) + (parseInt(e.date.split('-')[1])-1)/12;
+    const pct = (year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR);
+    const dot = document.createElement('div');
+    dot.className = 'scrubber-event-dot';
+    dot.style.left = (pct*100)+'%';
+    dot.style.background = catColor(e.cat);
+    dot.title = e.title;
+    dots.appendChild(dot);
+  });
+}
+
+function updateScrubberMarker(year) {
+  const pct = (year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR);
+  document.getElementById('scrubber-marker').style.left = (pct*100)+'%';
+}
+
+function scrubberClick(ev) {
+  const track = document.getElementById('scrubber-track');
+  const rect = track.getBoundingClientRect();
+  const pct = (ev.clientX - rect.left) / rect.width;
+  const year = Math.round(MIN_YEAR + pct * (MAX_YEAR - MIN_YEAR));
+  // Scroll to nearest era
+  const era = ERAS.find(e => year >= e.start && year < e.end) || ERAS[ERAS.length-1];
+  const eraEl = document.getElementById('era-'+era.label.replace(/\s/g,'-'));
+  if(eraEl) eraEl.scrollIntoView({behavior:'smooth'});
+  updateScrubberMarker(year);
+}
+
+// Era jump buttons
+const jumper = document.getElementById('era-jumper');
+ERAS.forEach(era => {
+  const btn = document.createElement('button');
+  btn.className = 'era-btn';
+  btn.textContent = era.label;
+  btn.style.borderColor = era.col + '55';
+  btn.onclick = () => {
+    const el = document.getElementById('era-'+era.label.replace(/\s/g,'-'));
+    if(el) el.scrollIntoView({behavior:'smooth'});
+  };
+  jumper.appendChild(btn);
+});
+
+renderTimeline();
+window.addEventListener('resize', buildScrubber);
+</script>
+</body>
+</html>

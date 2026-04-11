@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Live space dashboard: ISS tracker, aurora, solar activity, asteroid approaches, launches, night sky and more.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="MissionCtrl.no — Space Dashboard">
+<meta property="og:description" content="Live space dashboard: ISS tracker, aurora, solar activity, asteroid approaches, launches, night sky and more.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MissionCtrl.no — Space Dashboard">
+<meta name="twitter:description" content="Live space dashboard: ISS tracker, aurora, solar activity, asteroid approaches, launches, night sky and more.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>MissionCtrl.no — Space Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--pink:#f472b6;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+html,body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+
+/* ── Layout ─────────────────────────────────────── */
+.dash{max-width:1500px;margin:0 auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.row{display:grid;gap:8px;}
+.r3{grid-template-columns:1fr 1fr 1fr;}
+.r4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.r2{grid-template-columns:1fr 1fr;}
+.r21{grid-template-columns:2fr 1fr;}
+.r12{grid-template-columns:1fr 2fr;}
+.r13{grid-template-columns:1fr 3fr;}
+.r31{grid-template-columns:3fr 1fr;}
+
+/* ── Cards ──────────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:hidden;position:relative;}
+.card-hd{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.card-title{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green);animation:ldot 2s infinite;flex-shrink:0;}
+@keyframes ldot{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── Type ───────────────────────────────────────── */
+.metric-big{font-size:28px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1;font-family:var(--mono);}
+.metric-sub{font-size:10px;color:var(--muted2);margin-top:3px;}
+.clock-big{font-family:var(--mono);font-size:22px;color:var(--blue);letter-spacing:.05em;}
+.lbl{font-size:10px;color:var(--muted2);margin-bottom:2px;}
+.val{font-size:13px;font-weight:500;font-family:var(--mono);}
+.divider{height:1px;background:var(--border);margin:8px 0;}
+.row-kv{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.row-kv:last-child{border-bottom:none;}
+.mono{font-family:var(--mono);}
+
+/* ── Badges ─────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.b-pink{background:rgba(244,114,182,.1);color:var(--pink);border:1px solid rgba(244,114,182,.2);}
+.b-orange{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(251,146,60,.2);}
+
+/* ── Panels ─────────────────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+.stat-cell{background:var(--bg4);border-radius:6px;padding:7px 9px;}
+.stat-cell .lbl{margin-bottom:2px;}
+
+/* sky */
+canvas{display:block;}
+#sky-canvas{width:100%;height:360px;border-radius:6px;background:#030406;cursor:crosshair;}
+.sky-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;}
+.sl-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted2);}
+.sl-dot{width:7px;height:7px;border-radius:50%;}
+.sky-tt{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;pointer-events:none;font-size:11px;display:none;z-index:10;min-width:150px;}
+
+/* sky modal */
+.sky-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+.sky-modal.open{display:flex;}
+.sky-modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:500px;width:100%;}
+
+/* inline modals */
+.imodal{display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:14px;margin-top:8px;}
+.imodal.open{display:block;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0;}
+.modal-stat{background:var(--bg4);border-radius:5px;padding:7px;}
+.modal-stat .lbl{margin-bottom:2px;}
+.modal-stat .val{font-size:12px;}
+.modal-body{font-size:12px;color:var(--muted2);line-height:1.65;}
+.close-btn{float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;}
+.close-btn:hover{color:var(--text);}
+
+/* map */
+#map-canvas{width:100%;height:140px;border-radius:6px;background:#040a14;}
+
+/* kp bars */
+.kp-bars{display:flex;gap:2px;align-items:flex-end;height:36px;margin:6px 0;}
+.kp-bar{flex:1;border-radius:2px 2px 0 0;min-height:3px;}
+
+/* crew */
+.crew-mission{margin-bottom:8px;}
+.crew-label{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.crew-chips{display:flex;flex-wrap:wrap;gap:3px;}
+.crew-chip{background:var(--bg4);border-radius:5px;padding:4px 8px;border-left-width:2px;border-left-style:solid;}
+.crew-chip .cn{font-size:11px;font-weight:500;}
+.crew-chip .cc{font-size:10px;color:var(--muted2);}
+
+/* launches */
+.launch-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.launch-item:last-child{border-bottom:none;}
+.launch-item:hover .ln{color:var(--blue);}
+.lcd{font-family:var(--mono);font-size:11px;color:var(--blue);min-width:86px;text-align:right;}
+.ln{font-size:12px;font-weight:500;transition:color .15s;}
+.lv{font-size:10px;color:var(--muted2);}
+
+/* asteroid */
+.ast-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.ast-item:last-child{border-bottom:none;}
+.ast-item:hover .an{color:var(--amber);}
+.an{font-size:12px;font-weight:500;}
+.ad{font-size:10px;color:var(--muted2);}
+
+/* mission rows */
+.mis-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.mis-row:last-child{border-bottom:none;}
+.mis-row:hover .mis-name{color:var(--blue);}
+.mis-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.mis-name{font-size:12px;font-weight:500;transition:color .15s;}
+.mis-det{font-size:10px;color:var(--muted2);}
+
+/* news */
+.news-item{padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.news-item:last-child{border-bottom:none;}
+.news-item:hover .news-title{color:var(--blue);}
+.news-title{font-size:12px;line-height:1.4;margin-bottom:2px;transition:color .15s;}
+.news-meta{font-size:10px;color:var(--muted2);}
+
+/* schedule */
+.sched-item{padding:7px 0;border-bottom:1px solid var(--border);}
+.sched-item:last-child{border-bottom:none;}
+
+/* solar bar */
+.sol-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:4px;}
+.sol-fill{height:100%;border-radius:2px;transition:width .5s;}
+
+/* meteor */
+.met-item{padding:7px 0;border-bottom:1px solid var(--border);}
+.met-item:last-child{border-bottom:none;}
+
+/* passes */
+.pass-item{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.pass-item:last-child{border-bottom:none;}
+
+/* upcoming */
+.upc-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.upc-row:last-child{border-bottom:none;}
+
+/* APOD */
+.apod-img{width:100%;border-radius:6px;object-fit:cover;cursor:pointer;height:150px;margin-bottom:6px;}
+
+/* mobile */
+@media(max-width:1100px){
+  .r4{grid-template-columns:1fr 1fr;}
+  .r3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:700px){
+  .r4,.r3,.r2,.r21,.r12,.r13,.r31{grid-template-columns:1fr!important;}
+  #sky-canvas{height:280px!important;}
+  .modal-grid{grid-template-columns:1fr 1fr!important;}
+}
+</style>
+<script src="/_shared.js"></script>
+</head>
+<body data-page="dashboard">
+<div class="dash">
+
+<!-- Row 1: Clock · ISS stats · Solar · Aurora quick stats -->
+<div class="row r4">
+  <div class="card">
+    <div class="card-hd"><div class="live-dot"></div><span class="card-title">Mission Time</span></div>
+    <div class="clock-big" id="utc">--:--:--</div>
+    <div style="font-size:10px;color:var(--muted2);margin-top:2px;" id="utc-date">UTC</div>
+    <div class="divider"></div>
+    <div class="lbl">Local — <span class="loc-label">—</span></div>
+    <div class="val" id="local-t" style="color:var(--teal);">--:--:--</div>
+    <div class="divider"></div>
+    <div class="row-kv"><span style="color:var(--muted2)">Humans in space</span><span class="mono" style="font-size:15px;font-weight:500;" id="human-n">—</span></div>
+    <div class="row-kv"><span style="color:var(--muted2)">Day of year</span><span class="mono" id="day-of-year">—</span></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">ISS Status</span><div class="live-dot" style="margin-left:auto;"></div></div>
+    <div class="stat-grid">
+      <div class="stat-cell"><div class="lbl">Latitude</div><div class="val" id="iss-lat" style="color:var(--blue);">—</div></div>
+      <div class="stat-cell"><div class="lbl">Longitude</div><div class="val" id="iss-lon" style="color:var(--blue);">—</div></div>
+      <div class="stat-cell"><div class="lbl">Altitude</div><div class="val" style="color:var(--green);">~408 km</div></div>
+      <div class="stat-cell"><div class="lbl">Speed</div><div class="val" style="color:var(--green);">27,600 km/h</div></div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">
+      <span class="badge b-blue">92.7 min orbit</span>
+      <span class="badge b-amber">51.6° inc</span>
+      <span class="badge b-green">15.5 orbits/day</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--orange)"></div><span class="card-title">Solar Activity</span></div>
+    <div class="row-kv"><span style="color:var(--muted2)">Sunspot count</span><span class="mono" style="color:var(--orange);" id="sunspot">—</span></div>
+    <div class="row-kv"><span style="color:var(--muted2)">Solar flux</span><span class="mono" style="color:var(--orange);" id="solar-flux">—</span></div>
+    <div class="row-kv"><span style="color:var(--muted2)">X-ray class</span><span id="xray-badge"><span class="badge b-green">—</span></span></div>
+    <div class="row-kv"><span style="color:var(--muted2)">Geomagnetic</span><span id="geo-badge"><span class="badge b-green">—</span></span></div>
+    <div class="lbl" style="margin-top:8px;">Solar cycle 25</div>
+    <div class="sol-bar"><div class="sol-fill" id="solar-prog" style="background:var(--orange);width:0%;"></div></div>
+    <div style="font-size:10px;color:var(--muted2);margin-top:2px;" id="solar-cycle-label">Solar cycle 25</div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--green)"></div><span class="card-title">Aurora — <span class="loc-label">—</span></span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+      <div><div class="lbl">Kp Index</div><div class="val" style="color:var(--green);font-size:20px;" id="kp-now">—</div></div>
+      <div><div class="lbl">Visibility</div><div id="aurora-vis" style="margin-top:4px;"><span class="badge b-amber">Loading…</span></div></div>
+    </div>
+    <div class="lbl">24h forecast</div>
+    <div class="kp-bars" id="kp-bars"></div>
+    <div style="font-size:10px;color:var(--muted2);" id="solar-wind">Solar wind loading…</div>
+    <div class="divider"></div>
+    <div style="font-size:10px;color:var(--muted2);"><span id="aurora-hint">Kp≥5 visible ~60°N</span></div>
+  </div>
+</div>
+
+<!-- Row 2: ISS world map (wide) + Crew -->
+<div class="row r21">
+  <div class="card">
+    <div class="card-hd"><div class="live-dot"></div><span class="card-title">ISS Ground Track — Live</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="iss-region"></span></div>
+    <canvas id="map-canvas"></canvas>
+    <div style="font-size:10px;color:var(--muted2);margin-top:6px;">Blue dot = ISS · Teal dot = your location · Updates every 10 seconds</div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><span class="card-title">Crew in Space</span>
+      <span class="mono" style="font-size:16px;font-weight:500;margin-left:auto;color:var(--text);" id="human-big">—</span>
+    </div>
+    <div id="crew-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+  </div>
+</div>
+
+<!-- Row 3: Night sky — full width -->
+<div class="card" style="position:relative;">
+  <div class="card-hd">
+    <div class="dot" style="background:var(--purple)"></div>
+    <span class="card-title">Night Sky — <span class="loc-label">—</span></span>
+    <span style="font-size:10px;color:var(--muted2);margin-left:auto;">Hover or click any object · <a href="/sky/" style="color:var(--blue);text-decoration:none;">Full sky map →</a></span>
+  </div>
+  <canvas id="sky-canvas"></canvas>
+  <div class="sky-tt" id="sky-tt"></div>
+  <div class="sky-legend">
+    <div class="sl-item"><div class="sl-dot" style="background:#fff;"></div>Stars</div>
+    <div class="sl-item"><div class="sl-dot" style="background:var(--amber);"></div>Planets</div>
+    <div class="sl-item"><div class="sl-dot" style="background:var(--blue);"></div>ISS</div>
+    <div class="sl-item"><div class="sl-dot" style="background:var(--green);"></div>Moon</div>
+    <div class="sl-item"><div class="sl-dot" style="background:var(--orange);"></div>Sun</div>
+    <div class="sl-item"><div class="sl-dot" style="background:var(--purple);"></div>Satellites</div>
+  </div>
+</div>
+
+<!-- Sky object modal (fixed overlay) -->
+<div class="sky-modal" id="sky-modal" onclick="if(event.target===this)closeSkyModal()">
+  <div class="sky-modal-box">
+    <button class="close-btn" onclick="closeSkyModal()">✕</button>
+    <div style="font-size:16px;font-weight:500;margin-bottom:3px;" id="sm-name"></div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:12px;" id="sm-type"></div>
+    <div class="modal-grid" id="sm-stats"></div>
+    <div class="modal-body" id="sm-desc"></div>
+  </div>
+</div>
+
+<!-- Row 4: Launches · Asteroids -->
+<div class="row r2">
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><span class="card-title">Upcoming Launches</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/launches/" style="color:var(--blue);text-decoration:none;">All launches →</a></span></div>
+    <div id="launch-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+    <div class="imodal" id="launch-modal">
+      <button class="close-btn" onclick="closeLaunchModal()">✕</button>
+      <div style="font-size:14px;font-weight:500;margin-bottom:3px;" id="lm-name"></div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;" id="lm-sub"></div>
+      <div class="modal-grid" id="lm-stats"></div>
+      <div class="modal-body" id="lm-desc"></div>
+      <div id="lm-btn" style="margin-top:8px;"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--red)"></div><span class="card-title">Near-Earth Asteroid Approaches</span></div>
+    <div id="asteroid-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+    <div class="imodal" id="asteroid-modal">
+      <button class="close-btn" onclick="closeAsteroidModal()">✕</button>
+      <div style="font-size:14px;font-weight:500;margin-bottom:3px;" id="am-name"></div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;" id="am-sub"></div>
+      <div class="modal-grid" id="am-stats"></div>
+      <div class="modal-body" id="am-desc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 5: Active missions · ISS passes · APOD -->
+<div class="row r3">
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">Active Missions</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/missions/" style="color:var(--blue);text-decoration:none;">All →</a></span></div>
+    <div id="mission-list"></div>
+    <div class="imodal" id="mission-modal">
+      <button class="close-btn" onclick="closeMissionModal()">✕</button>
+      <div style="font-size:14px;font-weight:500;margin-bottom:2px;" id="mm-name"></div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;" id="mm-agency"></div>
+      <div class="modal-grid" id="mm-stats"></div>
+      <div class="modal-body" id="mm-desc"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">ISS Passes — <span class="loc-label">—</span></span></div>
+    <div style="font-size:10px;color:var(--muted2);margin-bottom:8px;">Next visible passes from your location</div>
+    <div id="pass-list"><div style="color:var(--muted2);font-size:11px;">Set your location to see passes</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--purple)"></div><span class="card-title">NASA — Picture of the Day</span></div>
+    <div id="apod-wrap"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+  </div>
+</div>
+
+<!-- Row 6: ISS Schedule · News -->
+<div class="row r12">
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><span class="card-title">ISS Mission Schedule</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="iss-schedule-updated"></span></div>
+    <div id="iss-schedule"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">Space News</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/news/" style="color:var(--blue);text-decoration:none;">More →</a></span></div>
+    <div id="news-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+  </div>
+</div>
+
+<!-- Row 7: ISS Live Camera -->
+<div class="card">
+  <div class="card-hd">
+    <div class="live-dot"></div>
+    <span class="card-title">ISS Live Camera — NASA HD Earth Viewing</span>
+    <span style="font-size:10px;color:var(--muted2);margin-left:auto;">Live when crew is awake · Replay otherwise</span>
+  </div>
+  <div style="position:relative;width:100%;padding-bottom:42%;border-radius:8px;overflow:hidden;background:#040a14;">
+    <iframe
+      src="https://www.youtube.com/embed/21X5lGlDOfg?autoplay=0&mute=1&controls=1&rel=0&modestbranding=1"
+      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:8px;"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+      loading="lazy"
+      title="ISS Live Stream">
+    </iframe>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+    <span class="badge b-green">NASA HDEV</span>
+    <span class="badge b-blue">408 km altitude</span>
+    <span class="badge b-amber">90 min orbit</span>
+    <span style="font-size:10px;color:var(--muted2);margin-left:auto;">Stream goes dark during orbital night or crew sleep periods</span>
+  </div>
+</div>
+
+<!-- Row 8: Meteor showers · Upcoming missions -->
+<div class="row r2">
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--pink)"></div><span class="card-title">Meteor Showers — <span class="loc-label">—</span></span></div>
+    <div id="meteor-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><span class="card-title">Upcoming Missions</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/missions/" style="color:var(--blue);text-decoration:none;">All →</a></span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Chang'e-7 (south pole)</span><span class="badge b-amber">Aug 2026</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Blue Ghost Mission 2</span><span class="badge b-blue">Oct 2026</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Artemis III (LEO demo)</span><span class="badge b-purple">Mid 2027</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">VIPER ice rover</span><span class="badge b-teal">2027</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Artemis IV (lunar landing)</span><span class="badge b-green">Early 2028</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Chang'e-8 (ISRU test)</span><span class="badge b-amber">Mid 2028</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Artemis V (2nd landing)</span><span class="badge b-blue">Late 2028</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Europa Clipper arrives</span><span class="badge b-blue">Apr 2030</span></div>
+    <div class="upc-row"><span style="color:var(--muted2)">Mars Sample Return</span><span class="badge b-red">2030s</span></div>
+  </div>
+</div>
+
+</div><!-- /dash -->
+
+<script>
+const PAD=n=>String(n).padStart(2,'0');
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DEG=Math.PI/180;
+let LAT_DEG=59.9,LON_DEG=10.7,LAT=59.9*DEG;
+
+window.onLocationReady=function(loc){
+  LAT_DEG=loc.lat;LON_DEG=loc.lon;LAT=LAT_DEG*DEG;
+  const name=loc.name||(Math.abs(loc.lat).toFixed(1)+'°'+(loc.lat>0?'N':'S'));
+  document.querySelectorAll('.loc-label').forEach(el=>el.textContent=name);
+  const hint=document.getElementById('aurora-hint');
+  if(hint){const al=Math.abs(loc.lat);const t=al>=67?1:al>=63?2:al>=60?4:al>=55?5:al>=50?6:7;
+    hint.textContent=`Kp≥${t} = possible from ${name} · Kp≥${Math.min(9,t+2)} = high chance`;}
+  fetchISS();drawSky();fetchAurora();computeISSPasses();renderMeteors();
+};
+
+// ── Clock ──────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('utc').textContent=`${PAD(n.getUTCHours())}:${PAD(n.getUTCMinutes())}:${PAD(n.getUTCSeconds())}`;
+  document.getElementById('utc-date').textContent=`${n.getUTCDate()} ${MONTHS[n.getUTCMonth()]} ${n.getUTCFullYear()} UTC`;
+  document.getElementById('local-t').textContent=`${PAD(n.getHours())}:${PAD(n.getMinutes())}:${PAD(n.getSeconds())}`;
+  const start=new Date(n.getFullYear(),0,0);
+  document.getElementById('day-of-year').textContent='Day '+Math.floor((n-start)/86400000);
+}
+setInterval(tick,1000);tick();
+
+// ── ISS ────────────────────────────────────────────
+let issLat=51.6,issLon=0;
+async function fetchISS(){
+  try{
+    const r=await fetch(`/functions/n2yo?type=positions&id=25544&lat=${LAT_DEG}&lon=${LON_DEG}&alt=100&seconds=1`);
+    const d=await r.json();
+    const pos=d.positions?d.positions[0]:d;
+    issLat=parseFloat(pos.satlatitude??pos.latitude);
+    issLon=parseFloat(pos.satlongitude??pos.longitude);
+    const la=issLat>0?issLat.toFixed(2)+'°N':Math.abs(issLat).toFixed(2)+'°S';
+    const lo=issLon>0?issLon.toFixed(2)+'°E':Math.abs(issLon).toFixed(2)+'°W';
+    document.getElementById('iss-lat').textContent=la;
+    document.getElementById('iss-lon').textContent=lo;
+  }catch(e){issLat+=0.3;if(issLat>51.6)issLat=-51.6;}
+  drawMap();
+}
+function drawMap(){
+  const c=document.getElementById('map-canvas');
+  const W=c.offsetWidth||800,H=140;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#040a14';ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=W/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=H/4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // Equator
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  // ISS
+  const px=((issLon+180)/360)*W,py=((90-issLat)/180)*H;
+  ctx.strokeStyle='rgba(74,158,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
+  ctx.fillStyle='rgba(74,158,255,0.12)';ctx.beginPath();ctx.arc(px,py,22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(74,158,255,0.3)';ctx.beginPath();ctx.arc(px,py,11,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#4a9eff';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(74,158,255,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('ISS',px+6,py-14);
+  // User dot
+  const ox=((LON_DEG+180)/360)*W,oy=((90-LAT_DEG)/180)*H;
+  ctx.fillStyle='var(--teal)';ctx.beginPath();ctx.arc(ox,oy,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,201,167,0.7)';ctx.font='8px monospace';ctx.fillText(window.SITE_LOC?.name?.split(',')[0]||'You',ox+4,oy-10);
+  // ISS orbital limit lines (51.6°N and 51.6°S)
+  const limN=((90-51.6)/180)*H,limS=((90+51.6)/180)*H;
+  ctx.strokeStyle='rgba(74,158,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(0,limN);ctx.lineTo(W,limN);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,limS);ctx.lineTo(W,limS);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(74,158,255,0.12)';ctx.font='8px monospace';ctx.textAlign='right';
+  ctx.fillText('51.6°N max',W-4,limN-3);ctx.fillText('51.6°S max',W-4,limS+10);
+}
+fetchISS();setInterval(fetchISS,10000);
+
+// ── Crew ───────────────────────────────────────────
+const MISSIONS_DB=[
+  {craft:'ISS — Expedition 74',color:'var(--blue)',returnDate:null,crew:[
+    {name:'Michael Fincke',country:'USA',role:'Commander'},
+    {name:'Zena Cardman',country:'USA',role:'Flight Engineer'},
+    {name:'Kimiya Yui',country:'Japan',role:'Flight Engineer'},
+    {name:'Oleg Platonov',country:'Russia',role:'Flight Engineer'},
+    {name:'Christopher Williams',country:'USA',role:'Flight Engineer'},
+    {name:'Sergey Kud-Sverchkov',country:'Russia',role:'Flight Engineer'},
+    {name:'Sergey Mikayev',country:'Russia',role:'Flight Engineer'},
+  ]},
+  {craft:'Tiangong — Shenzhou 21',color:'var(--red)',returnDate:new Date('2026-05-01'),crew:[
+    {name:'Zhang Lu',country:'China',role:'Commander'},
+    {name:'Wu Fei',country:'China',role:'Flight Engineer'},
+    {name:'Zhang Hongzhang',country:'China',role:'Payload Specialist'},
+  ]},
+];
+function fetchCrew(){
+  const now=new Date();
+  const active=MISSIONS_DB.filter(m=>!m.returnDate||m.returnDate>now);
+  const allCrew=active.flatMap(m=>m.crew.map(p=>({...p,craft:m.craft,color:m.color})));
+  document.getElementById('human-n').textContent=allCrew.length;
+  document.getElementById('human-big').textContent=allCrew.length;
+  const el=document.getElementById('crew-list');el.innerHTML='';
+  active.forEach(m=>{
+    const wrap=document.createElement('div');wrap.className='crew-mission';
+    const lbl=document.createElement('div');lbl.className='crew-label';lbl.style.color=m.color;lbl.textContent=m.craft;
+    wrap.appendChild(lbl);
+    const chips=document.createElement('div');chips.className='crew-chips';
+    m.crew.forEach(p=>{
+      const ch=document.createElement('div');ch.className='crew-chip';ch.style.borderLeftColor=m.color;
+      ch.innerHTML=`<div class="cn">${p.name}</div><div class="cc">${p.country} · ${p.role}</div>`;
+      chips.appendChild(ch);
+    });
+    wrap.appendChild(chips);el.appendChild(wrap);
+  });
+  // Live check
+  fetch('https://api.open-notify.org/astros.json')
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{
+      if(!d?.people)return;
+      const known=allCrew.map(p=>p.name.toLowerCase());
+      const unknown=d.people.filter(p=>!known.some(n=>p.name.toLowerCase().includes(n.split(' ')[0].toLowerCase())));
+      if(unknown.length){
+        const wrap=document.createElement('div');wrap.className='crew-mission';
+        const lbl=document.createElement('div');lbl.className='crew-label';lbl.style.color='var(--teal)';lbl.textContent='Other / untracked';
+        wrap.appendChild(lbl);
+        const chips=document.createElement('div');chips.className='crew-chips';
+        unknown.forEach(p=>{
+          const ch=document.createElement('div');ch.className='crew-chip';ch.style.borderLeftColor='var(--teal)';
+          ch.innerHTML=`<div class="cn">${p.name}</div><div class="cc">${p.craft}</div>`;
+          chips.appendChild(ch);
+        });
+        wrap.appendChild(chips);el.appendChild(wrap);
+        document.getElementById('human-n').textContent=allCrew.length+unknown.length;
+        document.getElementById('human-big').textContent=allCrew.length+unknown.length;
+      }
+    }).catch(()=>{});
+}
+fetchCrew();setInterval(fetchCrew,60000);
+
+// ── Astronomy math ─────────────────────────────────
+function jde(d){return 2451545.0+(d-new Date(2000,0,1,12))/86400000;}
+function lstNow(jd){
+  const T=(jd-2451545.0)/36525;
+  let g=100.4606184+36000.7700536*T+0.000387933*T*T;
+  g=((g%360)+360)%360;
+  const n=new Date();
+  const ut=(n.getUTCHours()+n.getUTCMinutes()/60+n.getUTCSeconds()/3600)*15;
+  return((g+ut+LON_DEG)%360)*DEG;
+}
+function sunPos(jd){
+  const n=jd-2451545.0,L=(280.460+0.9856474*n)%360,g=((357.528+0.9856003*n)%360)*DEG;
+  const lam=(L+1.915*Math.sin(g)+0.020*Math.sin(2*g))*DEG,eps=23.439*DEG;
+  return{ra:Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam)),dec:Math.asin(Math.sin(eps)*Math.sin(lam))};
+}
+function moonPos(jd){
+  const D=jd-2451545.0,M=(134.963+13.064993*D)*DEG,L=(218.316+13.176396*D)*DEG,F=(93.272+13.229350*D)*DEG;
+  const lon=(218.316+13.176396*D+6.289*Math.sin(M)-1.274*Math.sin(2*L-M)+0.658*Math.sin(2*L))*DEG;
+  const lat=(5.128*Math.sin(F))*DEG,eps=23.439*DEG;
+  return{ra:Math.atan2(Math.sin(lon)*Math.cos(eps)-Math.tan(lat)*Math.sin(eps),Math.cos(lon)),
+    dec:Math.asin(Math.sin(lat)*Math.cos(eps)+Math.cos(lat)*Math.sin(eps)*Math.sin(lon))};
+}
+function planetRaDec(jd,pl){
+  const cfg={Mercury:{L0:252.251,Lr:149474.0722,a:0.387,e:0.20563,w0:77.457,wr:0.4593},
+    Venus:{L0:181.980,Lr:58519.2130,a:0.723,e:0.00677,w0:131.602,wr:1.4095},
+    Mars:{L0:355.433,Lr:19141.6964,a:1.524,e:0.09341,w0:336.060,wr:1.8449},
+    Jupiter:{L0:34.352,Lr:3036.3027,a:5.203,e:0.04849,w0:14.331,wr:1.3068},
+    Saturn:{L0:50.078,Lr:1223.5110,a:9.537,e:0.05551,w0:93.057,wr:1.9637}};
+  const T=(jd-2451545.0)/36525,p=cfg[pl];if(!p)return null;
+  const Lp=((p.L0+p.Lr*T)%360)*DEG,wp=((p.w0+p.wr*T)%360)*DEG,M=Lp-wp;
+  let E=M;for(let i=0;i<5;i++)E=M+p.e*Math.sin(E);
+  const v=2*Math.atan2(Math.sqrt(1+p.e)*Math.sin(E/2),Math.sqrt(1-p.e)*Math.cos(E/2));
+  const r=p.a*(1-p.e*Math.cos(E));
+  const sun=sunPos(jd),xs=r*Math.cos(Lp+v-wp)+Math.cos(sun.ra),ys=r*Math.sin(Lp+v-wp)+Math.sin(sun.ra);
+  return{ra:Math.atan2(ys,xs),dec:0};
+}
+function altAz(ra,dec,lst,lat){
+  const ha=lst-ra,sinA=Math.sin(dec)*Math.sin(lat)+Math.cos(dec)*Math.cos(lat)*Math.cos(ha);
+  const alt=Math.asin(Math.max(-1,Math.min(1,sinA)));
+  const cosZ=(Math.sin(dec)-Math.sin(alt)*Math.sin(lat))/(Math.cos(alt)*Math.cos(lat)||0.001);
+  const az0=Math.acos(Math.max(-1,Math.min(1,cosZ)));
+  return{alt,az:Math.sin(ha)>0?(2*Math.PI-az0):az0};
+}
+
+const STARS=[
+  {name:'Sirius',ra:1.7679,dec:-0.2918,mag:-1.46,type:'A-type main sequence'},
+  {name:'Arcturus',ra:3.7335,dec:0.3360,mag:-0.05,type:'K-type giant'},
+  {name:'Vega',ra:4.8740,dec:0.6768,mag:0.03,type:'A-type main sequence'},
+  {name:'Capella',ra:1.3817,dec:0.8028,mag:0.08,type:'G-type giant'},
+  {name:'Rigel',ra:1.3724,dec:-0.1432,mag:0.13,type:'B-type supergiant'},
+  {name:'Procyon',ra:2.0040,dec:0.0912,mag:0.38,type:'F-type subgiant'},
+  {name:'Betelgeuse',ra:1.5496,dec:0.1290,mag:0.42,type:'M-type supergiant'},
+  {name:'Altair',ra:5.1964,dec:0.1545,mag:0.76,type:'A-type main sequence'},
+  {name:'Aldebaran',ra:1.2033,dec:0.2884,mag:0.87,type:'K-type giant'},
+  {name:'Antares',ra:4.3203,dec:-0.4316,mag:1.06,type:'M-type supergiant'},
+  {name:'Pollux',ra:2.0303,dec:0.4897,mag:1.16,type:'K-type giant'},
+  {name:'Deneb',ra:5.4167,dec:0.7913,mag:1.25,type:'A-type supergiant'},
+  {name:'Regulus',ra:2.6541,dec:0.2086,mag:1.40,type:'B-type main sequence'},
+  {name:'Spica',ra:3.5133,dec:-0.1945,mag:1.04,type:'B-type main sequence'},
+  {name:'Polaris',ra:0.6605,dec:1.5574,mag:2.02,type:'F-type supergiant — North Star'},
+  {name:'Dubhe',ra:2.9177,dec:0.9787,mag:1.79,type:'K-type giant'},
+  {name:'Alkaid',ra:3.6041,dec:0.8587,mag:1.86,type:'B-type main sequence'},
+  {name:'Alioth',ra:3.3809,dec:0.9706,mag:1.77,type:'A-type main sequence'},
+  {name:'Bellatrix',ra:1.4188,dec:0.1084,mag:1.64,type:'B-type giant'},
+  {name:'Alnilam',ra:1.4870,dec:-0.0209,mag:1.69,type:'B-type supergiant'},
+  {name:'Alnitak',ra:1.5069,dec:-0.0338,mag:1.77,type:'O-type supergiant'},
+  {name:'Mintaka',ra:1.4645,dec:-0.0033,mag:2.23,type:"O-type giant — Orion's belt"},
+  {name:'Saiph',ra:1.5575,dec:-0.1694,mag:2.07,type:'B-type supergiant'},
+  {name:'Mizar',ra:3.5080,dec:0.9473,mag:2.04,type:'A-type main sequence — double star'},
+  {name:'Fomalhaut',ra:6.0113,dec:-0.5148,mag:1.17,type:'A-type main sequence'},
+  {name:'Alnath',ra:1.4255,dec:0.4996,mag:1.65,type:'B-type giant'},
+  {name:'Hadar',ra:3.6474,dec:-1.0503,mag:0.61,type:'B-type giant'},
+  {name:'Castor',ra:1.9794,dec:0.5592,mag:1.58,type:'A-type main sequence'},
+  {name:'Acrux',ra:3.2529,dec:-1.1013,mag:0.87,type:'B-type main sequence'},
+  {name:'Gacrux',ra:3.2792,dec:-0.9992,mag:1.64,type:'M-type giant'},
+];
+
+const PLANET_COLORS={Mercury:'#b0afae',Venus:'#ffe4a0',Mars:'#e84040',Jupiter:'#f0c080',Saturn:'#e8d070'};
+const PLANET_INFO={
+  Mercury:{desc:'Smallest planet. Extreme temps: 430°C day, -180°C night. Almost no atmosphere.',size:'4,879 km',dist:'77M km avg'},
+  Venus:{desc:'Hottest planet at 465°C. Rotates backwards. CO₂ atmosphere creates extreme greenhouse effect.',size:'12,104 km',dist:'41M km avg'},
+  Mars:{desc:'The Red Planet. Olympus Mons (22km) is the largest volcano in the solar system.',size:'6,779 km',dist:'78M km avg'},
+  Jupiter:{desc:'Largest planet. 1,300 Earths could fit inside. Great Red Spot storm has lasted 350+ years.',size:'139,820 km',dist:'628M km avg'},
+  Saturn:{desc:'Ring system spans 282,000 km but is only ~10m thick. Less dense than liquid water.',size:'116,460 km',dist:'1.2B km avg'},
+};
+
+let skyObjects=[];
+function drawSky(){
+  const canvas=document.getElementById('sky-canvas');
+  const W=canvas.offsetWidth||900,H=360;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const R=Math.min(W,H)/2-18,CX=W/2,CY=H/2;
+  const now=new Date(),jd=jde(now),lst=lstNow(jd);
+
+  // Background
+  ctx.fillStyle='#030406';ctx.fillRect(0,0,W,H);
+
+  // Gradient sky glow
+  const grd=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
+  grd.addColorStop(0,'rgba(20,25,60,0.4)');grd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+
+  // Grid circles
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  [0.25,0.5,0.75,1].forEach(f=>{ctx.beginPath();ctx.arc(CX,CY,R*f,0,Math.PI*2);ctx.stroke();});
+
+  // Altitude labels
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.font='9px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ['60°','45°','30°'].forEach((l,i)=>{ctx.fillText(l,CX,CY-R*[0.33,0.5,0.67][i]);});
+
+  // Cardinal directions
+  ['N','NE','E','SE','S','SW','W','NW'].forEach((d,i)=>{
+    const a=i*Math.PI/4-Math.PI/2;
+    ctx.fillStyle=d==='N'?'rgba(255,80,80,0.6)':'rgba(255,255,255,0.22)';
+    ctx.font=d.length===1?'11px monospace':'9px monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(d,CX+Math.cos(a)*(R+16),CY+Math.sin(a)*(R+16));
+  });
+
+  ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);ctx.stroke();
+
+  skyObjects=[];
+  function proj(alt,az){
+    if(alt<-6*DEG)return null;
+    const r=R*Math.max(0,1-alt/(Math.PI/2));
+    return{x:CX+r*Math.sin(az),y:CY-r*Math.cos(az)};
+  }
+
+  // Milky Way band (subtle)
+  ctx.save();ctx.globalAlpha=0.05;ctx.strokeStyle='#a0b8ff';ctx.lineWidth=24;
+  const mwPts=[[5.3,0.44],[5.6,0.2],[5.9,-0.1],[6.1,-0.4],[0.2,-0.6],[0.6,-0.3],[0.9,0.0],[1.2,0.3],[1.5,0.5],[2.0,0.6]];
+  ctx.beginPath();
+  mwPts.forEach((mp,i)=>{const {alt,az}=altAz(mp[0],mp[1],lst,LAT);const p=proj(alt,az);if(!p)return;i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+  ctx.stroke();ctx.restore();
+
+  // Stars
+  STARS.forEach(s=>{
+    const {alt,az}=altAz(s.ra,s.dec,lst,LAT);
+    const p=proj(alt,az);if(!p)return;
+    const bright=Math.min(1,0.3+0.7*(1+1.46)/(1+Math.max(0,s.mag+1.46)));
+    const sz=Math.max(0.7,2.5-s.mag*0.45);
+    ctx.fillStyle=`rgba(255,255,255,${bright.toFixed(2)})`;
+    ctx.beginPath();ctx.arc(p.x,p.y,sz,0,Math.PI*2);ctx.fill();
+    if(s.mag<1.3){
+      ctx.fillStyle='rgba(200,220,255,0.15)';ctx.beginPath();ctx.arc(p.x,p.y,sz*3,0,Math.PI*2);ctx.fill();
+    }
+    if(s.mag<0.5&&alt>10*DEG){
+      ctx.fillStyle='rgba(255,255,255,0.18)';ctx.font='8px system-ui';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(s.name,p.x+sz+3,p.y);
+    }
+    skyObjects.push({...s,x:p.x,y:p.y,r:7,type:s.type||'Star',color:'#ddeeff',altDeg:alt/DEG,azDeg:az/DEG,
+      extra:`${s.type}. Magnitude ${s.mag}. ${alt>0?'Currently above horizon.':'Just below horizon.'}`});
+  });
+
+  // Sun
+  const sun=sunPos(jd);
+  const {alt:sAlt,az:sAz}=altAz(sun.ra,sun.dec,lst,LAT);
+  const sp=proj(sAlt,sAz);
+  if(sp){
+    const sgrd=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,18);
+    sgrd.addColorStop(0,'rgba(255,220,100,0.95)');sgrd.addColorStop(0.5,'rgba(251,146,60,0.7)');sgrd.addColorStop(1,'rgba(251,146,60,0)');
+    ctx.fillStyle=sgrd;ctx.beginPath();ctx.arc(sp.x,sp.y,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff5a0';ctx.beginPath();ctx.arc(sp.x,sp.y,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(251,146,60,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('Sun',sp.x+9,sp.y);
+    skyObjects.push({name:'Sun',x:sp.x,y:sp.y,r:16,type:'Star (our Sun)',color:'#fb923c',altDeg:sAlt/DEG,azDeg:sAz/DEG,
+      extra:'Surface temp 5,778K. Distance 149.6M km. Currently in Solar Cycle 25 near solar maximum.'});
+  }
+
+  // Moon
+  const moon=moonPos(jd);
+  const {alt:mAlt,az:mAz}=altAz(moon.ra,moon.dec,lst,LAT);
+  const mp=proj(mAlt,mAz);
+  const phase=(jd-2451550.1)/29.53;
+  const phaseNames=['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+  const phaseName=phaseNames[Math.round((phase%1)*8)%8];
+  if(mp){
+    const mgrd=ctx.createRadialGradient(mp.x,mp.y,0,mp.x,mp.y,12);
+    mgrd.addColorStop(0,'rgba(200,230,200,0.9)');mgrd.addColorStop(0.6,'rgba(46,212,122,0.7)');mgrd.addColorStop(1,'rgba(46,212,122,0)');
+    ctx.fillStyle=mgrd;ctx.beginPath();ctx.arc(mp.x,mp.y,12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(200,240,200,0.9)';ctx.beginPath();ctx.arc(mp.x,mp.y,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(46,212,122,0.7)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('Moon',mp.x+9,mp.y);
+    skyObjects.push({name:'Moon',x:mp.x,y:mp.y,r:14,type:'Natural satellite',color:'#2ed47a',altDeg:mAlt/DEG,azDeg:mAz/DEG,
+      extra:`Phase: ${phaseName}. Distance ~384,400 km. Orbital period 27.3 days. Tidally locked.`});
+  }
+
+  // Planets
+  Object.entries(PLANET_COLORS).forEach(([pl,col])=>{
+    const pos=planetRaDec(jd,pl);if(!pos)return;
+    const {alt,az}=altAz(pos.ra,pos.dec,lst,LAT);
+    const p=proj(alt,az);if(!p)return;
+    const sz=pl==='Jupiter'?5.5:pl==='Saturn'?5:4;
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,sz,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=0.5;ctx.beginPath();ctx.arc(p.x,p.y,sz,0,Math.PI*2);ctx.stroke();
+    if(pl==='Saturn'){ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(p.x,p.y,sz*1.9,sz*0.4,0.3,0,Math.PI*2);ctx.stroke();}
+    ctx.fillStyle=col+'aa';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(pl,p.x+sz+3,p.y);
+    const info=PLANET_INFO[pl]||{};
+    skyObjects.push({name:pl,x:p.x,y:p.y,r:12,type:'Planet',color:col,altDeg:alt/DEG,azDeg:az/DEG,
+      extra:info.desc||'',size:info.size,dist:info.dist});
+  });
+
+  // ISS (approximate sky position from ground track)
+  const issRa=((issLon/360)*2*Math.PI+lst)%(2*Math.PI);
+  const issDec=Math.min(51.6*DEG,Math.abs(issLat*DEG))*Math.sign(issLat||1);
+  const {alt:iAlt,az:iAz}=altAz(issRa,issDec,lst,LAT);
+  const rAlt=Math.max(0.18,Math.abs(iAlt)*0.5+0.15);
+  const ip=proj(rAlt,iAz);
+  if(ip){
+    ctx.fillStyle='#4a9eff';ctx.beginPath();ctx.arc(ip.x,ip.y,5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(74,158,255,0.4)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(ip.x,ip.y,9,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='rgba(74,158,255,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('ISS',ip.x+9,ip.y);
+    skyObjects.push({name:'ISS',x:ip.x,y:ip.y,r:13,type:'Space station',color:'#4a9eff',altDeg:issLat,azDeg:issLon,
+      extra:`At ${Math.abs(issLat).toFixed(1)}°${issLat>0?'N':'S'} ${Math.abs(issLon).toFixed(1)}°${issLon>0?'E':'W'}. Alt 408 km. Speed 27,600 km/h.`,
+      size:'109×73 m',dist:'~408 km'});
+  }
+
+  // Clip to circle
+  ctx.save();ctx.beginPath();ctx.arc(CX,CY,R+1,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+}
+drawSky();setInterval(drawSky,5000);
+
+// Sky interactions
+const skyCvs=document.getElementById('sky-canvas');
+const skyTT=document.getElementById('sky-tt');
+skyCvs.addEventListener('mousemove',e=>{
+  const rect=skyCvs.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(skyCvs.width/rect.width);
+  const my=(e.clientY-rect.top)*(skyCvs.height/rect.height);
+  const hit=skyObjects.find(o=>Math.hypot(o.x-mx,o.y-my)<o.r+4);
+  if(hit){
+    skyTT.style.display='block';
+    skyTT.style.left=(e.clientX-rect.left+14)+'px';
+    skyTT.style.top=(e.clientY-rect.top-10)+'px';
+    skyTT.innerHTML=`<div style="font-weight:500;color:${hit.color};margin-bottom:3px;">${hit.name}</div>
+      <div style="color:var(--muted2)">Type: <span style="color:var(--text)">${hit.type}</span></div>
+      <div style="color:var(--muted2)">Altitude: <span style="color:var(--text)">${hit.altDeg.toFixed(1)}°</span></div>
+      ${hit.mag!==undefined?`<div style="color:var(--muted2)">Magnitude: <span style="color:var(--text)">${hit.mag}</span></div>`:''}`;
+    skyCvs.style.cursor='pointer';
+  } else {skyTT.style.display='none';skyCvs.style.cursor='crosshair';}
+});
+skyCvs.addEventListener('click',e=>{
+  const rect=skyCvs.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(skyCvs.width/rect.width);
+  const my=(e.clientY-rect.top)*(skyCvs.height/rect.height);
+  const hit=skyObjects.find(o=>Math.hypot(o.x-mx,o.y-my)<o.r+4);
+  if(hit)openSkyModal(hit);
+});
+function openSkyModal(obj){
+  document.getElementById('sm-name').textContent=obj.name;
+  document.getElementById('sm-name').style.color=obj.color;
+  document.getElementById('sm-type').textContent=obj.type+(obj.mag!==undefined?` · Magnitude ${obj.mag}`:'');
+  const stats=[];
+  if(obj.altDeg!==undefined)stats.push(['Altitude',obj.altDeg.toFixed(1)+'°']);
+  if(obj.azDeg!==undefined)stats.push(['Azimuth',obj.azDeg.toFixed(1)+'°']);
+  if(obj.size)stats.push(['Diameter',obj.size]);
+  if(obj.dist)stats.push(['Distance',obj.dist]);
+  document.getElementById('sm-stats').innerHTML=stats.map(s=>
+    `<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
+  document.getElementById('sm-desc').textContent=obj.extra||'';
+  document.getElementById('sky-modal').classList.add('open');
+}
+function closeSkyModal(){document.getElementById('sky-modal').classList.remove('open');}
+
+// ── ISS Passes ─────────────────────────────────────
+async function computeISSPasses(){
+  const el=document.getElementById('pass-list');
+  if(!window.SITE_LOC){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Set your location to see passes</div>';return;}
+  el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Loading passes…</div>';
+  try{
+    const r=await fetch(`/functions/n2yo?type=passes&id=25544&lat=${LAT_DEG}&lon=${LON_DEG}&alt=100&days=7&minEl=10`);
+    const d=await r.json();
+    const passes=d.passes;
+    if(!passes?.length){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">No visible passes in next 7 days.</div>';return;}
+    el.innerHTML='';
+    passes.slice(0,5).forEach(p=>{
+      const start=new Date(p.startUTC*1000);
+      const dayStr=start.toDateString()===new Date().toDateString()?'Today':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][start.getDay()];
+      const dur=Math.round((p.endUTC-p.startUTC)/60);
+      const item=document.createElement('div');item.className='pass-item';
+      item.innerHTML=`<div><div style="font-size:12px;font-weight:500;">${dayStr} ${PAD(start.getHours())}:${PAD(start.getMinutes())}</div>
+        <div style="font-size:10px;color:var(--muted2)">Max ${p.maxEl}° · ${dur} min</div></div>
+        <span class="badge ${p.maxEl>40?'b-green':'b-blue'}">Visible</span>`;
+      el.appendChild(item);
+    });
+  }catch(e){
+    el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Pass data unavailable.</div>';
+  }
+}
+computeISSPasses();
+
+// ── Aurora ─────────────────────────────────────────
+async function fetchAurora(){
+  let kpNow=2.7,gotData=false;
+  try{
+    const r=await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    if(!r.ok)throw new Error();
+    const d=await r.json(),recent=d.slice(-24);
+    kpNow=parseFloat(recent[recent.length-1]?.kp_index||2.7);
+    gotData=true;
+    const bars=document.getElementById('kp-bars');bars.innerHTML='';
+    recent.forEach(pt=>{
+      const kp=parseFloat(pt.kp_index||0),pct=Math.max(5,Math.min(100,(kp/9)*100));
+      const col=kp>=7?'var(--red)':kp>=5?'var(--amber)':'var(--blue)';
+      const bar=document.createElement('div');bar.className='kp-bar';
+      bar.style.cssText=`height:${pct}%;background:${col};opacity:0.75;align-self:flex-end;`;
+      bar.title=`Kp ${kp.toFixed(1)}`;bars.appendChild(bar);
+    });
+  }catch(e){
+    const bars=document.getElementById('kp-bars');bars.innerHTML='';
+    [2,1.8,2.3,3,2.7,2.1,1.9,2.4,2.8,3.1,2.9,2.5,2.2,2,1.8,2.1,2.4,2.7,3,2.8,2.3,2,1.7,2.1].forEach(kp=>{
+      const bar=document.createElement('div');bar.className='kp-bar';
+      bar.style.cssText=`height:${Math.max(5,(kp/9)*100)}%;background:var(--blue);opacity:0.4;align-self:flex-end;`;
+      bars.appendChild(bar);
+    });
+  }
+  const absLat=Math.abs(LAT_DEG);
+  const kpThresh=absLat>=67?1:absLat>=63?2:absLat>=60?4:absLat>=55?5:absLat>=50?6:7;
+  let visText,visCls;
+  if(kpNow>=kpThresh+1){visText='High chance';visCls='b-green';}
+  else if(kpNow>=kpThresh){visText='Possible';visCls='b-amber';}
+  else{visText='Unlikely';visCls='b-red';}
+  document.getElementById('kp-now').textContent=kpNow.toFixed(1);
+  document.getElementById('aurora-vis').innerHTML=`<span class="badge ${visCls}">${visText}</span>`;
+  if(!gotData)document.getElementById('aurora-vis').innerHTML+='<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Estimated</div>';
+}
+async function fetchSolarWind(){
+  try{
+    const r=await fetch('https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json');
+    if(!r.ok)throw new Error();
+    const d=await r.json(),last=d[d.length-1];
+    if(last)document.getElementById('solar-wind').textContent=`Wind: ${Math.round(last.proton_speed||450)} km/s · Density: ${(last.proton_density||5).toFixed(1)} p/cm³`;
+  }catch(e){document.getElementById('solar-wind').textContent='Wind: ~450 km/s · Density: ~5 p/cm³ (est.)';}
+}
+fetchAurora();fetchSolarWind();
+setInterval(()=>{fetchAurora();fetchSolarWind();},300000);
+
+// ── Solar ──────────────────────────────────────────
+async function fetchSolar(){
+  try{
+    const r=await fetch('https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json');
+    const d=await r.json(),last=d[d.length-1];
+    if(last){document.getElementById('sunspot').textContent=Math.round(last.ssn||120);
+      document.getElementById('solar-flux').textContent=(last.f10_7||145).toFixed(1)+' sfu';}
+  }catch(e){document.getElementById('sunspot').textContent='~140 (est.)';document.getElementById('solar-flux').textContent='~160 sfu (est.)';}
+  try{
+    const r=await fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json');
+    const d=await r.json();
+    if(d?.length){const cl=d[0].class||'B1';const cls=cl[0]==='X'?'b-red':cl[0]==='M'?'b-amber':'b-green';
+      document.getElementById('xray-badge').innerHTML=`<span class="badge ${cls}">${cl}</span>`;}
+    else throw new Error();
+  }catch(e){document.getElementById('xray-badge').innerHTML='<span class="badge b-green">B class (est.)</span>';}
+  try{
+    const r=await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const d=await r.json(),kp=parseFloat(d[d.length-1]?.kp_index||2);
+    const gCls=kp>=7?'b-red':kp>=5?'b-amber':'b-green';
+    const gTxt=kp>=7?'G3-G5 Storm':kp>=5?'G1-G2 Storm':kp>=3?'Active':'Quiet';
+    document.getElementById('geo-badge').innerHTML=`<span class="badge ${gCls}">${gTxt}</span>`;
+  }catch(e){document.getElementById('geo-badge').innerHTML='<span class="badge b-green">Quiet (est.)</span>';}
+}
+fetchSolar();setInterval(fetchSolar,600000);
+
+// ── Asteroids ──────────────────────────────────────
+const ASTEROID_FALLBACK=[
+  {name:'2024 YR4',date:'2026-04-12',distLd:0.8,distKm:0.305,vel:14.2,diaMin:40,diaMax:90,haz:false,
+   desc:'Small asteroid making a close pass. Was briefly flagged as a potential impactor in early 2024 before further observations ruled it out. One of the most studied small asteroids in recent years.'},
+  {name:'2023 DZ2',date:'2026-04-18',distLd:1.4,distKm:0.537,vel:19.8,diaMin:120,diaMax:270,haz:false,
+   desc:'Medium-sized asteroid well-characterised by radar observations. Passes safely beyond lunar distance.'},
+  {name:'2025 BX1',date:'2026-04-22',distLd:2.1,distKm:0.806,vel:11.3,diaMin:8,diaMax:18,haz:false,
+   desc:'Small recently discovered near-Earth asteroid. Typical of many small objects that regularly pass between Earth and Moon without posing any risk.'},
+  {name:'2022 AP7',date:'2026-05-01',distLd:18.4,distKm:7.07,vel:30.1,diaMin:1100,diaMax:2400,haz:true,
+   desc:'One of the largest potentially hazardous asteroids discovered in recent years. Poses no impact risk for at least the next century. Its large size makes it a subject of ongoing study.'},
+  {name:'(433) Eros',date:'2026-05-06',distLd:89.2,distKm:34.2,vel:7.4,diaMin:11000,diaMax:34400,haz:false,
+   desc:'First near-Earth asteroid to be orbited and landed on by a spacecraft (NEAR Shoemaker 2001). S-type asteroid shaped like a bent potato.'},
+  {name:'2015 TB145',date:'2026-05-14',distLd:3.2,distKm:1.23,vel:34.9,diaMin:570,diaMax:640,haz:false,
+   desc:'Nicknamed the "Halloween asteroid". Unusual dead-comet composition. High velocity suggests cometary origin. Passes at safe 3+ lunar distances.'},
+];
+async function fetchAsteroids(){
+  const el=document.getElementById('asteroid-list');
+  const today=new Date(),ds=today.toISOString().split('T')[0];
+  const de=new Date(today.getTime()+7*86400000).toISOString().split('T')[0];
+  let usedLive=false;
+  try{
+    const r=await fetch(`/functions/nasa?endpoint=asteroids&start_date=${ds}&end_date=${de}`);
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    if(!d.near_earth_objects)throw new Error();
+    const all=[];
+    Object.values(d.near_earth_objects).forEach(day=>day.forEach(a=>all.push(a)));
+    if(!all.length)throw new Error();
+    all.sort((a,b)=>parseFloat(a.close_approach_data[0]?.miss_distance?.kilometers||1e9)-parseFloat(b.close_approach_data[0]?.miss_distance?.kilometers||1e9));
+    el.innerHTML='';
+    all.slice(0,6).forEach(a=>{
+      const ca=a.close_approach_data[0];
+      const dist=parseFloat(ca?.miss_distance?.lunar||0).toFixed(1);
+      const distKm=(parseFloat(ca?.miss_distance?.kilometers||0)/1000000).toFixed(2);
+      const dia=parseFloat(a.estimated_diameter?.meters?.estimated_diameter_max||0).toFixed(0);
+      const haz=a.is_potentially_hazardous_asteroid;
+      const item=document.createElement('div');item.className='ast-item';
+      item.innerHTML=`<div style="flex:1;min-width:0;"><div class="an">${a.name.replace(/[()]/g,'')}</div>
+        <div class="ad">${ca?.close_approach_date||''} · ${distKm}M km · ${dist} LD · Ø~${dia}m</div></div>
+        <span class="badge ${haz?'b-red':'b-green'}">${haz?'Hazardous':'Safe'}</span>`;
+      item.onclick=()=>openAsteroidModal(a);el.appendChild(item);
+    });
+    usedLive=true;
+  }catch(e){}
+  if(!usedLive){
+    el.innerHTML='<div style="font-size:10px;color:var(--muted2);margin-bottom:6px;">Showing known upcoming approaches</div>';
+    ASTEROID_FALLBACK.forEach(a=>{
+      const item=document.createElement('div');item.className='ast-item';
+      item.innerHTML=`<div style="flex:1;min-width:0;"><div class="an">${a.name}</div>
+        <div class="ad">${a.date} · ${a.distKm}M km · ${a.distLd} LD · Ø${a.diaMin}–${a.diaMax}m</div></div>
+        <span class="badge ${a.haz?'b-red':'b-green'}">${a.haz?'Hazardous':'Safe'}</span>`;
+      item.onclick=()=>openAsteroidFallback(a);el.appendChild(item);
+    });
+  }
+}
+function openAsteroidFallback(a){
+  document.getElementById('am-name').textContent=a.name;
+  document.getElementById('am-sub').textContent=`Close approach: ${a.date} · ${a.haz?'Potentially Hazardous':'Non-hazardous'}`;
+  document.getElementById('am-stats').innerHTML=[['Miss dist.',a.distKm+'M km'],['Lunar dist.',a.distLd+' LD'],['Velocity',a.vel+' km/s'],['Diameter',a.diaMin+'–'+a.diaMax+' m'],['Hazardous',a.haz?'Yes':'No'],['Source','Curated']]
+    .map(s=>`<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
+  document.getElementById('am-desc').textContent=a.desc;
+  document.getElementById('asteroid-modal').classList.add('open');
+}
+function openAsteroidModal(a){
+  const ca=a.close_approach_data[0];
+  const dist=parseFloat(ca?.miss_distance?.lunar||0).toFixed(2);
+  const distKm=(parseFloat(ca?.miss_distance?.kilometers||0)/1000000).toFixed(3);
+  const vel=parseFloat(ca?.relative_velocity?.kilometers_per_second||0).toFixed(2);
+  const diaMin=parseFloat(a.estimated_diameter?.meters?.estimated_diameter_min||0).toFixed(0);
+  const diaMax=parseFloat(a.estimated_diameter?.meters?.estimated_diameter_max||0).toFixed(0);
+  document.getElementById('am-name').textContent=a.name;
+  document.getElementById('am-sub').textContent=`${ca?.close_approach_date||'—'} · ${a.is_potentially_hazardous_asteroid?'Potentially Hazardous':'Non-hazardous'}`;
+  document.getElementById('am-stats').innerHTML=[['Miss dist.',distKm+'M km'],['Lunar dist.',dist+' LD'],['Velocity',vel+' km/s'],['Diameter',diaMin+'–'+diaMax+'m'],['Hazardous',a.is_potentially_hazardous_asteroid?'Yes':'No'],['NASA ID',a.id]]
+    .map(s=>`<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
+  document.getElementById('am-desc').textContent=`${a.name} will make a close flyby at ${dist} lunar distances (${distKm}M km). Velocity: ${vel} km/s relative to Earth.`;
+  document.getElementById('asteroid-modal').classList.add('open');
+}
+function closeAsteroidModal(){document.getElementById('asteroid-modal').classList.remove('open');}
+fetchAsteroids();
+
+// ── Active Missions ────────────────────────────────
+const MISSIONS=[
+  {name:'ISS',agency:'NASA/Roscosmos/ESA/JAXA/CSA',icon:'🛰',color:'var(--green)',status:'Active',sc:'b-green',
+   stats:[['Altitude','~408 km'],['Speed','27,600 km/h'],['In service','Since 1998'],['Modules','17']],
+   desc:'The International Space Station is the largest structure humans have built in space. Crews of 7 rotate every ~6 months. Expected to operate until at least 2030.'},
+  {name:'James Webb ST',agency:'NASA/ESA/CSA',icon:'🔭',color:'var(--amber)',status:'Operational',sc:'b-amber',
+   stats:[['Orbit','L2 point'],['Distance','1.5M km'],['Launch','Dec 25 2021'],['Mirror','6.5 m']],
+   desc:'JWST observes in infrared, seeing through dust clouds and back to the first galaxies. Has exceeded all performance expectations. Fuel for 20+ years.'},
+  {name:'Perseverance',agency:'NASA/JPL',icon:'🤖',color:'var(--red)',status:'Active — Mars',sc:'b-red',
+   stats:[['Location','Jezero Crater'],['On Mars','Since Feb 2021'],['Distance','>28 km driven'],['Samples','23 cached']],
+   desc:'Perseverance is caching rock samples in Jezero Crater for eventual return to Earth. Confirmed ancient delta deposits and found organic molecules. 70+ helicopter flights by Ingenuity.'},
+  {name:'Europa Clipper',agency:'NASA/JPL',icon:'💧',color:'var(--blue)',status:'En route',sc:'b-blue',
+   stats:[['Launch','Oct 14 2024'],['Arrival','Apr 2030'],['Target','Europa (Jupiter)'],['Flybys','49 planned']],
+   desc:'Will perform 49 close flybys of Europa, which has a subsurface ocean that may harbour life. Carries instruments to assess habitability.'},
+  {name:'Voyager 1',agency:'NASA/JPL',icon:'🛸',color:'var(--purple)',status:'Interstellar',sc:'b-purple',
+   stats:[['Distance','~24.3B km'],['Speed','17 km/s'],['Launch','Sep 1977'],['Signal delay','~22.5 hr']],
+   desc:'Most distant human-made object. Crossed into interstellar space in 2012. Still transmitting scientific data 46+ years after launch.'},
+  {name:'LRO',agency:'NASA/GSFC',icon:'🌕',color:'var(--teal)',status:'Lunar orbit',sc:'b-teal',
+   stats:[['Orbit','~50 km polar'],['Launch','Jun 2009'],['Resolution','0.5 m/pixel'],['Data','500TB+']],
+   desc:'Lunar Reconnaissance Orbiter — 16 years of continuous lunar mapping. Confirmed polar water ice. Supporting Artemis landing site selection.'},
+  {name:'Curiosity',agency:'NASA/JPL',icon:'🔬',color:'var(--orange)',status:'Active — Mars',sc:'b-orange',
+   stats:[['Location','Gale Crater'],['On Mars','Since Aug 2012'],['Distance','>31 km driven'],['Power','RTG nuclear']],
+   desc:'Confirmed Mars once had conditions for microbial life. Still operating, climbing Mount Sharp well beyond its planned 2-year mission.'},
+  {name:'Tiangong',agency:'CNSA',icon:'🏠',color:'var(--red)',status:'Active',sc:'b-red',
+   stats:[['Altitude','~390 km'],['Crew','3 taikonauts'],['In service','Since 2021'],['Modules','3']],
+   desc:"China's modular space station. Three modules: Tianhe core, Wentian and Mengtian labs. Crew rotates every ~6 months via Shenzhou. Shenzhou-21 crew currently aboard."},
+];
+function renderMissions(){
+  const el=document.getElementById('mission-list');el.innerHTML='';
+  MISSIONS.forEach(m=>{
+    const row=document.createElement('div');row.className='mis-row';
+    row.innerHTML=`<div class="mis-icon" style="background:${m.color}22;">${m.icon}</div>
+      <div style="flex:1;min-width:0;"><div class="mis-name">${m.name}</div><div class="mis-det">${m.agency}</div></div>
+      <span class="badge ${m.sc}" style="flex-shrink:0;">${m.status}</span>
+      <span style="color:var(--muted2);margin-left:4px;font-size:12px;">›</span>`;
+    row.onclick=()=>openMission(m);el.appendChild(row);
+  });
+}
+renderMissions();
+function openMission(m){
+  document.getElementById('mm-name').textContent=m.name;
+  document.getElementById('mm-name').style.color=m.color;
+  document.getElementById('mm-agency').textContent=m.agency+' · '+m.status;
+  document.getElementById('mm-stats').innerHTML=m.stats.map(s=>
+    `<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
+  document.getElementById('mm-desc').textContent=m.desc;
+  document.getElementById('mission-modal').classList.add('open');
+  document.getElementById('mission-modal').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeMissionModal(){document.getElementById('mission-modal').classList.remove('open');}
+
+// ── APOD ───────────────────────────────────────────
+async function fetchAPOD(){
+  const el=document.getElementById('apod-wrap');
+  try{
+    const r=await fetch('/functions/nasa?endpoint=apod');
+    const d=await r.json();
+    if(d.media_type==='image'){
+      el.innerHTML=`<img class="apod-img" src="${d.url}" alt="${d.title}" onclick="window.open('${d.hdurl||d.url}','_blank')" title="Click for HD">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px;">${d.title}</div>
+        <div style="font-size:10px;color:var(--muted2);line-height:1.5;">${(d.explanation||'').substring(0,160)}…</div>`;
+    } else {
+      el.innerHTML=`<div style="font-size:11px;font-weight:500;margin-bottom:4px;">${d.title}</div>
+        <div style="font-size:10px;color:var(--muted2);line-height:1.5;">${(d.explanation||'').substring(0,200)}…</div>
+        <a href="${d.url}" target="_blank" style="color:var(--blue);font-size:10px;">Watch →</a>`;
+    }
+  }catch(e){
+    el.innerHTML='<div style="font-size:11px;color:var(--muted2);">APOD unavailable. <a href="https://apod.nasa.gov" target="_blank" style="color:var(--blue);">Visit →</a></div>';
+  }
+}
+fetchAPOD();
+
+// ── Launches ───────────────────────────────────────
+const PAD2=n=>String(n).padStart(2,'0');
+function cdStr(net){
+  const diff=net-Date.now();if(diff<0)return'Launched';
+  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+  return d>0?`T-${d}d ${PAD2(h)}h`:`T-${PAD2(h)}:${PAD2(m)}:${PAD2(s)}`;
+}
+const LAUNCHES_FB=[
+  {name:"Chang'e-7",veh:'Long March 5',net:new Date('2026-08-01T00:00:00Z').getTime(),status:'Planned',sc:'b-amber',agency:'CNSA',site:'Wenchang',payload:'Orbiter+lander+rover+hopper',desc:"China's lunar south pole mission. The hopper will fly into permanently shadowed craters to search for water ice.",wiki:'https://en.wikipedia.org/wiki/Chang%27e_7'},
+  {name:'Blue Ghost M2',veh:'Falcon 9',net:new Date('2026-10-01T00:00:00Z').getTime(),status:'Planned',sc:'b-blue',agency:'Firefly/NASA',site:'Cape Canaveral',payload:'Lunar lander',desc:"Firefly's second Blue Ghost mission to the lunar far side. Carries NASA science payloads.",wiki:'https://en.wikipedia.org/wiki/Blue_Ghost_(spacecraft)'},
+  {name:'Artemis III',veh:'SLS Block 1',net:new Date('2027-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-purple',agency:'NASA',site:'KSC',payload:'Orion + crew',desc:'Crewed LEO demonstration of commercial lunar landers before the actual landing attempt.',wiki:'https://en.wikipedia.org/wiki/Artemis_III'},
+  {name:'VIPER Rover',veh:'Falcon Heavy',net:new Date('2027-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-teal',agency:'NASA',site:'KSC',payload:'Ice-hunting rover',desc:'Volatiles Investigating Polar Exploration Rover — will drill for water ice in permanently shadowed lunar craters.',wiki:'https://en.wikipedia.org/wiki/VIPER_(rover)'},
+  {name:'Artemis IV',veh:'SLS Block 1B',net:new Date('2028-02-01T00:00:00Z').getTime(),status:'Planned',sc:'b-green',agency:'NASA',site:'KSC',payload:'Orion + crew',desc:'First crewed lunar landing since Apollo 17 in 1972. South pole landing near water ice deposits.',wiki:'https://en.wikipedia.org/wiki/Artemis_IV'},
+  {name:"Chang'e-8",veh:'Long March 5',net:new Date('2028-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-amber',agency:'CNSA',site:'Wenchang',payload:'Lander + ISRU equip.',desc:'Tests in-situ resource utilisation including 3D printing from lunar regolith. Foundation of ILRS.',wiki:'https://en.wikipedia.org/wiki/Chang%27e_8'},
+];
+let launchData=LAUNCHES_FB;
+async function fetchLaunches(){
+  try{
+    const r=await fetch('https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=6&format=json');
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    if(d.results?.length){
+      launchData=d.results.map(l=>({name:l.name,veh:l.rocket?.configuration?.name||'',net:new Date(l.net).getTime(),
+        status:l.status?.abbrev||'TBD',sc:'b-blue',agency:l.launch_service_provider?.name||'—',
+        site:l.pad?.location?.name||'—',payload:l.mission?.name||l.name,
+        desc:l.mission?.description||'No description available.',wiki:l.url||''}));
+    }
+  }catch(e){}
+  renderLaunches();
+  setInterval(()=>launchData.forEach(l=>{const e=document.getElementById('cd'+l.net);if(e)e.textContent=cdStr(l.net);}),1000);
+}
+function renderLaunches(){
+  const el=document.getElementById('launch-list');el.innerHTML='';
+  launchData.slice(0,6).forEach(l=>{
+    const item=document.createElement('div');item.className='launch-item';
+    item.innerHTML=`<div style="flex:1;min-width:0;"><div class="ln">${l.name}</div><div class="lv">${l.veh||l.agency||''}</div></div>
+      <div style="text-align:right;flex-shrink:0;"><div class="lcd" id="cd${l.net}">${cdStr(l.net)}</div><span class="badge ${l.sc}">${l.status}</span></div>`;
+    item.onclick=()=>openLaunchModal(l);el.appendChild(item);
+  });
+}
+function openLaunchModal(l){
+  document.getElementById('lm-name').textContent=l.name;
+  document.getElementById('lm-sub').textContent=(l.agency||'')+(l.site?' · '+l.site:'');
+  const net=new Date(l.net);
+  document.getElementById('lm-stats').innerHTML=[['Countdown',cdStr(l.net)],['Target date',net.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})],['Rocket',l.veh||'—'],['Agency',l.agency||'—'],['Launch site',l.site||'—'],['Status',l.status||'—']]
+    .map(s=>`<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
+  document.getElementById('lm-desc').textContent=l.desc||'No description available.';
+  document.getElementById('lm-btn').innerHTML=l.wiki?`<a href="${l.wiki}" target="_blank" style="color:var(--blue);font-size:11px;text-decoration:none;">Read more →</a>`:'';
+  document.getElementById('launch-modal').classList.add('open');
+  document.getElementById('launch-modal').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeLaunchModal(){document.getElementById('launch-modal').classList.remove('open');}
+fetchLaunches();
+
+// ── News ───────────────────────────────────────────
+async function fetchNews(){
+  const el=document.getElementById('news-list');
+  let items=[
+    {title:'Artemis II crew completes historic lunar flyby, splashdown confirmed',site:'NASA',date:'10 Apr 2026',url:'https://nasa.gov'},
+    {title:"Chang'e-7 on track for August 2026 south pole launch",site:'SpaceNews',date:'8 Apr 2026',url:'https://spacenews.com'},
+    {title:'JWST reveals new details of galaxy formation at cosmic dawn',site:'ESA/Webb',date:'7 Apr 2026',url:'https://webb.nasa.gov'},
+    {title:'SpaceX Starship completes 12th test flight from Boca Chica',site:'NASASpaceFlight',date:'5 Apr 2026',url:'https://nasaspaceflight.com'},
+    {title:'Perseverance caches 23rd Mars sample — MSR planning continues',site:'JPL',date:'4 Apr 2026',url:'https://mars.nasa.gov'},
+    {title:'Blue Origin passes Blue Moon lander qualification milestone',site:'Space.com',date:'3 Apr 2026',url:'https://space.com'},
+  ];
+  try{
+    const r=await fetch('https://api.spaceflightnewsapi.net/v4/articles/?limit=6&format=json');
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    if(d.results?.length)items=d.results.map(a=>({title:a.title,site:a.news_site,date:new Date(a.published_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),url:a.url}));
+  }catch(e){}
+  el.innerHTML='';
+  items.slice(0,6).forEach(a=>{
+    const item=document.createElement('div');item.className='news-item';
+    item.innerHTML=`<div class="news-title">${a.title}</div><div class="news-meta">${a.site} · ${a.date}</div>`;
+    item.onclick=()=>window.open(a.url,'_blank');el.appendChild(item);
+  });
+}
+fetchNews();setInterval(fetchNews,300000);
+
+// ── ISS Schedule ───────────────────────────────────
+async function fetchISSSchedule(){
+  const el=document.getElementById('iss-schedule');
+  const now=new Date();
+  const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const events=[
+    {date:new Date('2026-04-10T20:07:00Z'),title:'Artemis II splashdown',type:'milestone',detail:'Reid Wiseman, Victor Glover, Christina Koch & Jeremy Hansen return to Earth off San Diego. First crewed lunar mission since 1972.'},
+    {date:new Date('2026-04-20T00:00:00Z'),title:'EVA — solar array maintenance',type:'eva',detail:'Planned spacewalk to inspect and maintain solar array panels on the starboard truss. Duration ~6.5 hours.'},
+    {date:new Date('2026-05-01T00:00:00Z'),title:'Cygnus NG-24 docking',type:'cargo',detail:'Northrop Grumman Cygnus cargo resupply arriving with ~3,700 kg of supplies and experiments.'},
+    {date:new Date('2026-05-15T00:00:00Z'),title:'VEGGIE crop harvest',type:'science',detail:'Harvest of fresh vegetables grown aboard ISS. Part of ongoing plant biology research for long-duration spaceflight.'},
+    {date:new Date('2026-06-01T00:00:00Z'),title:'Soyuz crew rotation',type:'crew',detail:'Russian cosmonaut rotation via Soyuz MS. Kononenko approaching end of his record-setting mission.'},
+    {date:new Date('2026-06-15T00:00:00Z'),title:'Dragon Crew-11 launch',type:'crew',detail:'SpaceX Crew Dragon launching next NASA crew to ISS. Exact crew and date TBC.'},
+    {date:new Date('2026-11-02T00:00:00Z'),title:'26th anniversary — continuous habitation',type:'milestone',detail:'ISS marks 26 years of unbroken human habitation, ongoing since November 2, 2000.'},
+  ];
+  const typeColors={milestone:'b-amber',crew:'b-blue',eva:'b-purple',cargo:'b-teal',science:'b-green'};
+  el.innerHTML='';
+  events.forEach(ev=>{
+    const isPast=ev.date<now,diff=Math.floor((ev.date-now)/86400000);
+    let when=isPast?'Completed':diff===0?'Today':diff===1?'Tomorrow':diff<7?`In ${diff} days`:fmt(ev.date);
+    const item=document.createElement('div');item.className='sched-item';
+    item.style.opacity=isPast?'0.4':'1';
+    item.innerHTML=`<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:500;${isPast?'text-decoration:line-through;':''}">${ev.title}</div>
+        <div style="font-size:10px;color:var(--muted2);">${ev.date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
+        <span class="badge ${typeColors[ev.type]}">${ev.type}</span>
+        <span style="font-size:10px;color:${isPast?'var(--muted2)':'var(--amber)'};">${when}</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--muted2);line-height:1.5;">${ev.detail}</div>`;
+    el.appendChild(item);
+  });
+  document.getElementById('iss-schedule-updated').textContent='Updated '+fmt(now);
+}
+fetchISSSchedule();setInterval(fetchISSSchedule,3600000);
+
+// ── Meteor Showers ─────────────────────────────────
+const METEORS=[
+  {name:'Lyrids',peak:'Apr 22–23',peakMonth:4,rate:18,radiantDec:34,speed:'49 km/s',active:'Apr 14–30',vis:'good',maxAlt:'65°',
+   note:'Radiant reaches 65° altitude. Good dark window midnight–3am. Good from Norway.'},
+  {name:'Eta Aquariids',peak:'May 5–6',peakMonth:5,rate:50,radiantDec:-1,speed:'66 km/s',active:'Apr 19–May 28',vis:'poor',maxAlt:'~30°',
+   note:'Radiant only ~30° from Norway and barely dark in May. Southern hemisphere shower — expect <10/hr.'},
+  {name:'Perseids',peak:'Aug 11–13',peakMonth:8,rate:100,radiantDec:58,speed:'59 km/s',active:'Jul 17–Aug 24',vis:'fair',maxAlt:'~90°',
+   note:'Radiant nearly overhead from Norway — perfect geometry. But August nights are short. Still Norway\'s best most years.'},
+  {name:'Draconids',peak:'Oct 7–8',peakMonth:10,rate:10,radiantDec:54,speed:'20 km/s',active:'Oct 6–10',vis:'good',maxAlt:'85°',
+   note:'Radiant almost overhead. Slow slow meteors, easy to spot. Occasional outbursts of hundreds/hr.'},
+  {name:'Orionids',peak:'Oct 21–22',peakMonth:10,rate:25,radiantDec:16,speed:'66 km/s',active:'Oct 2–Nov 7',vis:'good',maxAlt:'47°',
+   note:'Long dark October nights make this one of the better autumn showers from Norway.'},
+  {name:'Leonids',peak:'Nov 17–18',peakMonth:11,rate:15,radiantDec:22,speed:'71 km/s',active:'Nov 6–30',vis:'good',maxAlt:'53°',
+   note:'Fast meteors, often bright fireballs. Early morning hours are best. Long dark nights.'},
+  {name:'Geminids',peak:'Dec 13–14',peakMonth:12,rate:120,radiantDec:33,speed:'35 km/s',active:'Dec 4–20',vis:'good',maxAlt:'64°',
+   note:'Best shower of the year worldwide. Very long dark nights in December. Slower = easier to see. 100+/hr possible.'},
+  {name:'Ursids',peak:'Dec 22–23',peakMonth:12,rate:10,radiantDec:76,speed:'33 km/s',active:'Dec 17–26',vis:'good',maxAlt:'Circumpolar',
+   note:'Circumpolar from Norway — radiant never sets. All-night visibility guaranteed.'},
+];
+function renderMeteors(){
+  const el=document.getElementById('meteor-list');el.innerHTML='';
+  const now=new Date(),curM=now.getMonth()+1,curD=now.getDate();
+  // Adjust visibility based on user latitude
+  const adjVis=(m)=>{
+    if(!window.SITE_LOC)return m.vis;
+    const lat=Math.abs(window.SITE_LOC.lat);
+    const radAlt=90-(lat-m.radiantDec);
+    if(radAlt<0)return'poor';
+    if(radAlt<20)return'poor';
+    if(radAlt<40)return'fair';
+    return m.vis;
+  };
+  METEORS.forEach(m=>{
+    const vis=adjVis(m);
+    const pp=m.peak.split(' ')[0].split('–'),pd=parseInt(pp[0]),pd2=parseInt(pp[pp.length-1]);
+    let timing='upcoming',tcls='b-amber';
+    if(m.peakMonth===curM&&pd<=curD+2&&pd2>=curD-1){timing='PEAK NOW';tcls='b-green';}
+    else if(m.peakMonth<curM||(m.peakMonth===curM&&pd2<curD)){timing='past';tcls='b-purple';}
+    const visCol=vis==='good'?'b-green':vis==='fair'?'b-amber':'b-red';
+    const item=document.createElement('div');item.className='met-item';
+    item.innerHTML=`<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:500;">${m.name}</div>
+        <div style="font-size:10px;color:var(--muted2);">Peak ${m.peak} · ${m.rate}/hr max · ${m.speed}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
+        <span class="badge ${tcls}">${timing}</span>
+        <span class="badge ${visCol}" style="font-size:9px;">${vis==='good'?'✓ Good':vis==='fair'?'~ Fair':'✗ Poor'} · ${m.maxAlt}</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--muted2);line-height:1.5;">${m.note}</div>`;
+    el.appendChild(item);
+  });
+}
+renderMeteors();
+
+window.addEventListener('resize',()=>{drawMap();drawSky();});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeSkyModal();
+    closeMissionModal();
+    closeLaunchModal();
+    closeAsteroidModal();
+  }
+});
+</script>
+</body>
+</html>

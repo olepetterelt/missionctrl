@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Live aurora probability map and space weather forecast based on real Kp index data.">
+<meta property="og:title" content="Aurora Forecast — MissionCtrl.no">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Aurora Forecast — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:20px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:20px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.card-hd{display:flex;align-items:center;gap:7px;margin-bottom:12px;}
+.card-title{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:ldot 2s infinite;flex-shrink:0;}
+@keyframes ldot{0%,100%{opacity:1}50%{opacity:.2}}
+.kp-big{font-size:64px;font-weight:500;font-family:var(--mono);line-height:1;text-align:center;margin:10px 0;}
+.kp-label{text-align:center;font-size:12px;color:var(--muted2);margin-bottom:16px;}
+.map-wrap{position:relative;border-radius:8px;overflow:hidden;background:#020408;}
+#aurora-canvas{width:100%;display:block;}
+.map-legend{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.map-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted2);}
+.map-legend-swatch{width:12px;height:8px;border-radius:2px;}
+.kp-bars{display:flex;gap:2px;align-items:flex-end;height:60px;margin:8px 0;}
+.kp-bar{flex:1;border-radius:2px 2px 0 0;min-height:3px;cursor:pointer;}
+.kp-bar:hover{opacity:0.8;}
+.row-kv{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.row-kv:last-child{border-bottom:none;}
+.city-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.city-row:last-child{border-bottom:none;}
+.city-name{font-size:12px;font-weight:500;}
+.city-lat{font-size:10px;color:var(--muted2);}
+.mono{font-family:var(--mono);}
+.tips-item{padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted2);line-height:1.5;}
+.tips-item:last-child{border-bottom:none;}
+.forecast-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:4px;}
+.forecast-fill{height:100%;border-radius:2px;transition:width .5s;}
+</style>
+</head>
+<body data-page="aurora">
+<div class="page">
+  <div class="page-title">Aurora Forecast</div>
+  <div class="page-sub">Live Kp index · Global aurora probability map · Updated every 5 minutes</div>
+
+  <div class="layout">
+    <div>
+      <!-- World map with aurora overlay -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-hd"><div class="live-dot"></div><span class="card-title">Global Aurora Probability Map</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="map-updated">Loading...</span></div>
+        <div class="map-wrap">
+          <canvas id="aurora-canvas" height="360"></canvas>
+        </div>
+        <div class="map-legend">
+          <div class="map-legend-item"><div class="map-legend-swatch" style="background:rgba(0,255,120,0.8);"></div>High probability</div>
+          <div class="map-legend-item"><div class="map-legend-swatch" style="background:rgba(0,200,255,0.5);"></div>Moderate</div>
+          <div class="map-legend-item"><div class="map-legend-swatch" style="background:rgba(100,100,255,0.2);"></div>Low</div>
+          <div class="map-legend-item"><div class="map-legend-swatch" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);"></div>None</div>
+          <span style="font-size:10px;color:var(--muted2);margin-left:auto;">Teal dot = your location</span>
+        </div>
+      </div>
+
+      <!-- 24h Kp chart -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-hd"><div class="live-dot"></div><span class="card-title">24h Kp Index History</span></div>
+        <div class="kp-bars" id="kp-bars-main"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted2);margin-top:2px;">
+          <span>24h ago</span><span>12h ago</span><span>Now</span>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="kp-scale-labels">
+          <div style="text-align:center;font-size:10px;color:var(--muted2);">Kp 0-2<br><span style="color:var(--blue);">Quiet</span></div>
+          <div style="text-align:center;font-size:10px;color:var(--muted2);">Kp 3-4<br><span style="color:var(--teal);">Unsettled</span></div>
+          <div style="text-align:center;font-size:10px;color:var(--muted2);">Kp 5-6<br><span style="color:var(--amber);">G1-G2 Storm</span></div>
+          <div style="text-align:center;font-size:10px;color:var(--muted2);">Kp 7+<br><span style="color:var(--red);">Major Storm</span></div>
+        </div>
+      </div>
+
+      <!-- Solar wind -->
+      <div class="card">
+        <div class="card-hd"><div class="live-dot"></div><span class="card-title">Solar Wind & IMF</span></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <div style="background:var(--bg4);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">Wind speed</div>
+            <div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--blue);" id="sw-speed">— km/s</div>
+          </div>
+          <div style="background:var(--bg4);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">Density</div>
+            <div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--teal);" id="sw-density">— p/cm³</div>
+          </div>
+          <div style="background:var(--bg4);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">Bz (IMF)</div>
+            <div style="font-size:18px;font-weight:500;font-family:var(--mono);" id="sw-bz">— nT</div>
+            <div style="font-size:9px;color:var(--muted2);">Negative = good</div>
+          </div>
+          <div style="background:var(--bg4);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">Kp now</div>
+            <div style="font-size:18px;font-weight:500;font-family:var(--mono);" id="kp-now-big">—</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted2);line-height:1.6;padding:8px;background:var(--bg4);border-radius:6px;">
+          <strong style="color:var(--text);">What drives aurora:</strong> When the IMF Bz component turns negative (southward), it connects with Earth's magnetic field and allows charged particles from the solar wind to flow into the polar regions, exciting atmospheric gases and causing aurora. Higher solar wind speed and density amplify the effect.
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Current status -->
+      <div class="card">
+        <div class="card-hd"><div class="live-dot"></div><span class="card-title">Current Status</span></div>
+        <div class="kp-big" id="kp-big">—</div>
+        <div class="kp-label" id="kp-activity">Loading...</div>
+        <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+        <div class="row-kv"><span style="color:var(--muted2);">Your location</span><span class="badge" id="loc-vis-badge">—</span></div>
+        <div class="row-kv"><span style="color:var(--muted2);">Threshold</span><span class="mono" id="loc-threshold">—</span></div>
+        <div class="row-kv"><span style="color:var(--muted2);">Best viewing</span><span style="font-size:11px;color:var(--muted2);">Midnight – 3am</span></div>
+        <div class="row-kv"><span style="color:var(--muted2);">Dark sky needed</span><span class="badge b-blue">Away from city</span></div>
+      </div>
+
+      <!-- City visibility table -->
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Visibility by city</div></div>
+        <div id="city-table"></div>
+      </div>
+
+      <!-- 3-day forecast -->
+      <div class="card">
+        <div class="card-hd"><div class="card-title">3-Day Forecast</div></div>
+        <div id="forecast-list"><div style="color:var(--muted2);font-size:11px;">Loading...</div></div>
+      </div>
+
+      <!-- Tips -->
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Observation tips</div></div>
+        <div class="tips-item">Get away from city lights — light pollution is the biggest obstacle. Even 30km from a city makes a big difference.</div>
+        <div class="tips-item">Let your eyes dark-adapt for 20 minutes before judging what you can see.</div>
+        <div class="tips-item">Look north (in the northern hemisphere). Aurora typically starts as a faint green glow on the northern horizon.</div>
+        <div class="tips-item">Camera phones can often see aurora that eyes can't — use night mode with a long exposure.</div>
+        <div class="tips-item">Kp index updates every 15 minutes. Check around midnight local time for best chances.</div>
+        <div class="tips-item">Solar flares and CMEs can cause sudden storm onset with little warning — subscribe to NOAA space weather alerts.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let userLat = 59.9, userLon = 10.7, userName = 'Oslo';
+let kpNow = 0;
+
+window.onLocationReady = function(loc) {
+  userLat = loc.lat; userLon = loc.lon;
+  userName = loc.name || `${loc.lat.toFixed(1)}°N`;
+  updateLocDisplay();
+  drawAuroraMap();
+};
+
+const CITIES = [
+  {name:'Tromsø',lat:69.7,lon:18.9},{name:'Tromsø',lat:69.7,lon:18.9},
+  {name:'Longyearbyen',lat:78.2,lon:15.6},{name:'Alta',lat:69.9,lon:23.3},
+  {name:'Bodø',lat:67.3,lon:14.4},{name:'Trondheim',lat:63.4,lon:10.4},
+  {name:'Bergen',lat:60.4,lon:5.3},{name:'Oslo',lat:59.9,lon:10.7},
+  {name:'Copenhagen',lat:55.7,lon:12.6},{name:'London',lat:51.5,lon:-0.1},
+  {name:'Paris',lat:48.9,lon:2.3},{name:'Berlin',lat:52.5,lon:13.4},
+  {name:'Helsinki',lat:60.2,lon:25.0},{name:'Reykjavik',lat:64.1,lon:-21.9},
+];
+
+function kpThresholdForLat(lat) {
+  const a = Math.abs(lat);
+  if(a >= 75) return 0;
+  if(a >= 70) return 1;
+  if(a >= 67) return 2;
+  if(a >= 63) return 3;
+  if(a >= 60) return 4;
+  if(a >= 55) return 5;
+  if(a >= 50) return 6;
+  if(a >= 45) return 7;
+  return 8;
+}
+
+function visibilityForKpAndLat(kp, lat) {
+  const thresh = kpThresholdForLat(lat);
+  if(kp >= thresh + 2) return {text:'High chance', cls:'b-green', pct:90};
+  if(kp >= thresh + 1) return {text:'Possible', cls:'b-amber', pct:55};
+  if(kp >= thresh) return {text:'Marginal', cls:'b-amber', pct:25};
+  return {text:'Unlikely', cls:'b-red', pct:5};
+}
+
+function updateLocDisplay() {
+  const thresh = kpThresholdForLat(userLat);
+  const vis = visibilityForKpAndLat(kpNow, userLat);
+  document.getElementById('loc-threshold').textContent = `Kp ≥ ${thresh}`;
+  const badge = document.getElementById('loc-vis-badge');
+  badge.textContent = vis.text;
+  badge.className = 'badge ' + vis.cls;
+}
+
+function drawAuroraMap() {
+  const canvas = document.getElementById('aurora-canvas');
+  const W = canvas.offsetWidth || 800;
+  canvas.width = W; canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+
+  // Dark background
+  ctx.fillStyle = '#020408';
+  ctx.fillRect(0, 0, W, 360);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for(let x = 0; x < W; x += W/12) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,360); ctx.stroke(); }
+  for(let y = 0; y < 360; y += 36) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Equator
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0,180); ctx.lineTo(W,180); ctx.stroke();
+
+  // Arctic/Antarctic circles
+  ctx.strokeStyle = 'rgba(74,158,255,0.15)';
+  ctx.setLineDash([4,4]);
+  const arcticY = ((90-66.5)/180)*360;
+  const antarcticY = ((90+66.5)/180)*360;
+  ctx.beginPath(); ctx.moveTo(0,arcticY); ctx.lineTo(W,arcticY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,antarcticY); ctx.lineTo(W,antarcticY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Aurora oval — based on Kp index
+  // The auroral oval expands equatorward as Kp increases
+  // At Kp=0: ~67°N, Kp=9: ~45°N (rough approximation)
+  const drawAuroraOval = (kp, hemisphere) => {
+    const centerLat = hemisphere === 'N' ? 90 : -90;
+    const ovalLat = hemisphere === 'N' ? (67 - kp * 2.5) : -(67 - kp * 2.5);
+    const ovalWidth = 3 + kp * 0.8;
+    const intensity = Math.min(1, kp / 6);
+
+    // Draw aurora oval as a band across the map
+    const latCenter = ovalLat;
+    const yCenter = ((90 - latCenter) / 180) * 360;
+    const yWidth = (ovalWidth / 180) * 360;
+
+    const grd = ctx.createLinearGradient(0, yCenter - yWidth * 2, 0, yCenter + yWidth * 2);
+    if(kp >= 5) {
+      grd.addColorStop(0, 'rgba(0,255,80,0)');
+      grd.addColorStop(0.3, `rgba(0,255,80,${(intensity * 0.7).toFixed(2)})`);
+      grd.addColorStop(0.5, `rgba(100,255,150,${(intensity * 0.9).toFixed(2)})`);
+      grd.addColorStop(0.7, `rgba(0,255,80,${(intensity * 0.7).toFixed(2)})`);
+      grd.addColorStop(1, 'rgba(0,255,80,0)');
+    } else if(kp >= 3) {
+      grd.addColorStop(0, 'rgba(0,200,255,0)');
+      grd.addColorStop(0.3, `rgba(0,200,255,${(intensity * 0.5).toFixed(2)})`);
+      grd.addColorStop(0.5, `rgba(50,220,200,${(intensity * 0.7).toFixed(2)})`);
+      grd.addColorStop(0.7, `rgba(0,200,255,${(intensity * 0.5).toFixed(2)})`);
+      grd.addColorStop(1, 'rgba(0,200,255,0)');
+    } else {
+      grd.addColorStop(0, 'rgba(80,80,255,0)');
+      grd.addColorStop(0.5, `rgba(80,80,255,${(intensity * 0.3).toFixed(2)})`);
+      grd.addColorStop(1, 'rgba(80,80,255,0)');
+    }
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, yCenter - yWidth * 2, W, yWidth * 4);
+  };
+
+  drawAuroraOval(kpNow, 'N');
+  drawAuroraOval(kpNow, 'S');
+
+  // Polar cap glow at high Kp
+  if(kpNow >= 5) {
+    const capGrd = ctx.createRadialGradient(W/2, 0, 0, W/2, 0, W/3);
+    capGrd.addColorStop(0, `rgba(0,255,120,${Math.min(0.4, kpNow/20)})`);
+    capGrd.addColorStop(1, 'rgba(0,255,120,0)');
+    ctx.fillStyle = capGrd;
+    ctx.fillRect(0, 0, W, 180);
+  }
+
+  // City dots
+  CITIES.filter((c,i,a)=>a.findIndex(x=>x.name===c.name)===i).forEach(c => {
+    const cx = ((c.lon + 180) / 360) * W;
+    const cy = ((90 - c.lat) / 180) * 360;
+    const vis = visibilityForKpAndLat(kpNow, c.lat);
+    const col = vis.cls === 'b-green' ? '#2ed47a' : vis.cls === 'b-amber' ? '#f0a500' : '#5a5f72';
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI*2); ctx.fill();
+  });
+
+  // User location
+  const ux = ((userLon + 180) / 360) * W;
+  const uy = ((90 - userLat) / 180) * 360;
+  ctx.fillStyle = 'rgba(0,201,167,0.3)';
+  ctx.beginPath(); ctx.arc(ux, uy, 10, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#00c9a7';
+  ctx.beginPath(); ctx.arc(ux, uy, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(0,201,167,0.8)';
+  ctx.font = '10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(userName.split(',')[0], ux + 6, uy - 2);
+
+  // Labels
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '9px monospace'; ctx.textAlign = 'right';
+  ctx.fillText('66.5°N Arctic', W - 4, arcticY - 2);
+  ctx.fillText('66.5°S Antarctic', W - 4, antarcticY - 2);
+
+  document.getElementById('map-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+}
+
+function renderCityTable() {
+  const el = document.getElementById('city-table');
+  const uniqueCities = CITIES.filter((c,i,a)=>a.findIndex(x=>x.name===c.name)===i).slice(0,10);
+  el.innerHTML = '';
+  uniqueCities.forEach(c => {
+    const vis = visibilityForKpAndLat(kpNow, c.lat);
+    const row = document.createElement('div');
+    row.className = 'city-row';
+    row.innerHTML = `<div><div class="city-name">${c.name}</div><div class="city-lat">${Math.abs(c.lat).toFixed(1)}°${c.lat>0?'N':'S'} · Kp≥${kpThresholdForLat(c.lat)}</div></div>
+      <span class="badge ${vis.cls}">${vis.text}</span>`;
+    el.appendChild(row);
+  });
+}
+
+function renderForecast(data) {
+  const el = document.getElementById('forecast-list');
+  el.innerHTML = '';
+  if(!data || !data.length) {
+    el.innerHTML = '<div style="color:var(--muted2);font-size:11px;">Forecast unavailable</div>';
+    return;
+  }
+  // Group by day
+  const days = {};
+  data.forEach(pt => {
+    const d = pt.time_tag.split('T')[0];
+    if(!days[d]) days[d] = [];
+    days[d].push(parseFloat(pt.kp_index || 0));
+  });
+  Object.entries(days).slice(0,3).forEach(([date, vals]) => {
+    const maxKp = Math.max(...vals);
+    const avgKp = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const pct = Math.min(100, (maxKp/9)*100);
+    const col = maxKp>=5?'var(--green)':maxKp>=3?'var(--amber)':'var(--blue)';
+    const d = new Date(date);
+    const label = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    const item = document.createElement('div');
+    item.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--border);';
+    item.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:12px;font-weight:500;">${label}</span>
+      <span style="font-size:11px;font-family:var(--mono);color:${col};">Kp max ${maxKp.toFixed(1)}</span>
+    </div>
+    <div class="forecast-bar"><div class="forecast-fill" style="width:${pct}%;background:${col};"></div></div>`;
+    el.appendChild(item);
+  });
+}
+
+async function fetchAllData() {
+  // Kp current
+  try {
+    const r = await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const d = await r.json();
+    const recent = d.slice(-24);
+    kpNow = parseFloat(recent[recent.length-1]?.kp_index || 0);
+
+    // Big Kp display
+    const kpBig = document.getElementById('kp-big');
+    kpBig.textContent = kpNow.toFixed(1);
+    kpBig.style.color = kpNow>=7?'var(--red)':kpNow>=5?'var(--amber)':kpNow>=3?'var(--teal)':'var(--blue)';
+
+    const activities = ['','','Quiet','Unsettled','Active','G1 Storm','G2 Storm','G3 Storm','G4 Storm','G5 Storm'];
+    document.getElementById('kp-activity').textContent = activities[Math.round(kpNow)] || 'Quiet';
+    document.getElementById('kp-now-big').textContent = kpNow.toFixed(1);
+    document.getElementById('kp-now-big').style.color = kpNow>=5?'var(--amber)':'var(--green)';
+
+    // Bars
+    const barsEl = document.getElementById('kp-bars-main');
+    barsEl.innerHTML = '';
+    recent.forEach(pt => {
+      const kp = parseFloat(pt.kp_index || 0);
+      const pct = Math.max(4, (kp/9)*100);
+      const col = kp>=7?'var(--red)':kp>=5?'var(--amber)':kp>=3?'var(--teal)':'var(--blue)';
+      const bar = document.createElement('div');
+      bar.className = 'kp-bar';
+      bar.style.cssText = `height:${pct}%;background:${col};opacity:0.8;align-self:flex-end;`;
+      bar.title = `Kp ${kp.toFixed(1)} at ${pt.time_tag}`;
+      barsEl.appendChild(bar);
+    });
+
+    updateLocDisplay();
+    renderCityTable();
+    drawAuroraMap();
+  } catch(e) {
+    document.getElementById('kp-big').textContent = '—';
+  }
+
+  // Solar wind
+  try {
+    const r = await fetch('https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json');
+    const d = await r.json();
+    const last = d[d.length-1];
+    if(last) {
+      document.getElementById('sw-speed').textContent = Math.round(last.proton_speed||450)+' km/s';
+      document.getElementById('sw-density').textContent = (last.proton_density||5).toFixed(1)+' p/cm³';
+      const bz = last.bz_gsm || 0;
+      const bzEl = document.getElementById('sw-bz');
+      bzEl.textContent = bz.toFixed(1)+' nT';
+      bzEl.style.color = bz < -5 ? 'var(--green)' : bz < 0 ? 'var(--amber)' : 'var(--red)';
+    }
+  } catch(e) {
+    document.getElementById('sw-speed').textContent = '~450 km/s';
+    document.getElementById('sw-density').textContent = '~5 p/cm³';
+    document.getElementById('sw-bz').textContent = '— nT';
+  }
+
+  // 3-day forecast
+  try {
+    const r = await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const d = await r.json();
+    renderForecast(d);
+  } catch(e) { renderForecast(null); }
+}
+
+fetchAllData();
+setInterval(fetchAllData, 300000);
+window.addEventListener('resize', drawAuroraMap);
+</script>
+</body>
+</html>

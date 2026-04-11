@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Current crew in space and notable astronaut profiles. Flight history, records and biographies.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Astronauts — MissionCtrl.no">
+<meta property="og:description" content="Current crew in space and notable astronaut profiles. Flight history, records and biographies.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/astronauts/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Astronauts — MissionCtrl.no">
+<meta name="twitter:description" content="Current crew in space and notable astronaut profiles. Flight history, records and biographies.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Astronauts — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:16px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(74,158,255,.1);color:var(--blue);border-color:rgba(74,158,255,.3);}
+.astro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.astro-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;}
+.astro-card:hover{border-color:var(--border2);background:var(--bg3);}
+.astro-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.astro-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex-shrink:0;}
+.astro-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.astro-agency{font-size:11px;color:var(--muted2);}
+.astro-stat-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);}
+.astro-stat-row:last-child{border-bottom:none;}
+.astro-stat-label{color:var(--muted2);}
+.astro-stat-val{font-family:var(--mono);}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;}
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0;}
+.st{background:var(--bg4);border-radius:6px;padding:8px;}
+.sl{font-size:10px;color:var(--muted2);margin-bottom:2px;}
+.sv{font-size:12px;font-weight:500;font-family:var(--mono);}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.mission-hist-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.mission-hist-item:last-child{border-bottom:none;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="astronauts">
+<div class="page">
+  <div class="page-title">Astronauts</div>
+  <div class="page-sub">Current crew in space and notable astronaut profiles — flight history, records and milestones</div>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filter('all',this)">All</button>
+    <button class="filter-btn" onclick="filter('inspace',this)">In Space Now</button>
+    <button class="filter-btn" onclick="filter('nasa',this)">NASA</button>
+    <button class="filter-btn" onclick="filter('roscosmos',this)">Roscosmos</button>
+    <button class="filter-btn" onclick="filter('esa',this)">ESA</button>
+    <button class="filter-btn" onclick="filter('cnsa',this)">CNSA</button>
+    <button class="filter-btn" onclick="filter('jaxa',this)">JAXA</button>
+  </div>
+  <div class="section-title">Current crew &amp; notable astronauts</div>
+  <div class="astro-grid" id="astro-grid"></div>
+</div>
+
+<div class="modal-backdrop" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button onclick="closeModal()" style="float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:20px;">✕</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <div id="m-avatar" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;flex-shrink:0;"></div>
+      <div><div style="font-size:18px;font-weight:500;" id="m-name"></div><div style="font-size:12px;color:var(--muted2);" id="m-agency"></div></div>
+    </div>
+    <div id="m-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+    <div class="sg" id="m-stats"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Biography</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.7;" id="m-bio"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Flight history</div>
+    <div id="m-flights"></div>
+    <div id="m-records-wrap" style="display:none;">
+      <div class="divider"></div>
+      <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Records &amp; milestones</div>
+      <div id="m-records"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ASTRONAUTS=[
+  // Currently in space
+  {name:'Michael Fincke',agency:'NASA',tag:'nasa',inSpace:true,craft:'ISS',role:'Commander',color:'#4a9eff',init:'MF',
+   born:'1967',country:'USA',flightCount:4,totalDays:381,evas:9,
+   bio:'Veteran NASA astronaut and former test pilot. Fincke held the US record for most time spent in space (381 days over 3 missions) until surpassed. Commander of Expedition 74. Has conducted 9 spacewalks — a record among NASA astronauts.',
+   flights:[{mission:'Expedition 9',vehicle:'Soyuz',year:2004,days:187},{mission:'STS-134 / Expedition 23-24',vehicle:'Shuttle/Soyuz',year:2008,days:184},{mission:'STS-134',vehicle:'Space Shuttle Endeavour',year:2011,days:16},{mission:'Expedition 74 (current)',vehicle:'Dragon Crew-12',year:2026,days:'ongoing'}],
+   records:['Former US record holder for most time in space','9 EVAs — tied for most by a NASA astronaut','4th spaceflight at age 58']},
+  {name:'Reid Wiseman',agency:'NASA',tag:'nasa',inSpace:true,craft:'Artemis II',role:'Commander',color:'#4a9eff',init:'RW',
+   born:'1975',country:'USA',flightCount:2,totalDays:216,evas:2,
+   bio:'Commander of Artemis II — the first crewed mission to travel to the Moon since Apollo 17 in 1972. Former Navy test pilot and fighter pilot. Previously commanded ISS Expedition 41. Wiseman commanded the first crewed lunar mission of the 21st century, setting a new human distance record of 252,760 miles from Earth.',
+   flights:[{mission:'Expedition 40/41',vehicle:'Soyuz TMA-13M',year:2014,days:165},{mission:'Artemis II (current)',vehicle:'SLS / Orion Integrity',year:2026,days:10}],
+   records:['Commander of first crewed lunar mission since Apollo 17','Set human distance record: 252,760 miles from Earth (2026)']},
+  {name:'Victor Glover',agency:'NASA',tag:'nasa',inSpace:true,craft:'Artemis II',role:'Pilot',color:'#4a9eff',init:'VG',
+   born:'1976',country:'USA',flightCount:2,totalDays:184,evas:4,
+   bio:'First Black astronaut on a lunar mission. Former Navy test pilot. Previously served as pilot on SpaceX Crew-1 (the first operational crewed Dragon flight). On Artemis II, became the first Black astronaut to travel to the Moon\'s vicinity.',
+   flights:[{mission:'SpaceX Crew-1',vehicle:'Dragon Resilience',year:2020,days:167},{mission:'Artemis II (current)',vehicle:'SLS / Orion Integrity',year:2026,days:10}],
+   records:['First Black astronaut to fly a lunar mission','Flew on first operational SpaceX Crew Dragon mission']},
+  {name:'Christina Koch',agency:'NASA',tag:'nasa',inSpace:true,craft:'Artemis II',role:'Mission Specialist',color:'#4a9eff',init:'CK',
+   born:'1979',country:'USA',flightCount:2,totalDays:338,evas:6,
+   bio:'First woman to fly on a lunar mission. Holds the record for the longest single spaceflight by a woman (328 days during Expedition 59-62). Participated in the first all-female spacewalk. Electrical engineer who worked at South Pole Station before joining NASA.',
+   flights:[{mission:'Expedition 59/60/61/62',vehicle:'Soyuz MS-12',year:2019,days:328},{mission:'Artemis II (current)',vehicle:'SLS / Orion Integrity',year:2026,days:10}],
+   records:['First woman to fly on a lunar mission (2026)','Record for longest single spaceflight by a woman: 328 days','First all-female spacewalk with Jessica Meir']},
+  {name:'Jeremy Hansen',agency:'CSA',tag:'esa',inSpace:true,craft:'Artemis II',role:'Mission Specialist',color:'#00c9a7',init:'JH',
+   born:'1975',country:'Canada',flightCount:1,totalDays:10,evas:0,
+   bio:'First Canadian to fly on a lunar mission and the first non-American to fly beyond Earth orbit. Former Royal Canadian Air Force fighter pilot. Selected as a Canadian Space Agency astronaut in 2009. Artemis II is his first spaceflight.',
+   flights:[{mission:'Artemis II (current)',vehicle:'SLS / Orion Integrity',year:2026,days:10}],
+   records:['First Canadian to fly a lunar mission','First non-American to fly beyond Earth orbit since Apollo era']},
+  {name:'Oleg Kononenko',agency:'Roscosmos',tag:'roscosmos',inSpace:true,craft:'ISS',role:'Flight Engineer',color:'#e84040',init:'OK',
+   born:'1964',country:'Russia',flightCount:5,totalDays:736,evas:6,
+   bio:'World record holder for total time spent in space — 736+ days across 5 missions. Mechanical engineer. His fifth mission aboard the ISS continues to extend this record. Kononenko has more time in space than any other human in history.',
+   flights:[{mission:'Expedition 17',vehicle:'Soyuz',year:2008,days:198},{mission:'Expedition 30/31',vehicle:'Soyuz',year:2011,days:192},{mission:'Expedition 44/45',vehicle:'Soyuz',year:2015,days:141},{mission:'Expedition 59/60',vehicle:'Soyuz',year:2019,days:188},{mission:'Expedition 71/72/73/74 (current)',vehicle:'Soyuz MS-25',year:2023,days:'ongoing'}],
+   records:['World record: most total time in space (736+ days and counting)','First human to exceed 700 days in space']},
+  {name:'Don Pettit',agency:'NASA',tag:'nasa',inSpace:false,craft:'—',role:'Flight Engineer (returned)',color:'#4a9eff',init:'DP',
+   born:'1955',country:'USA',flightCount:3,totalDays:369,evas:4,
+   bio:'Oldest active NASA astronaut. Chemical engineer and science communicator known for creative zero-g experiments photographed from ISS. His long-exposure star trail photos are iconic. Returned from his 3rd spaceflight in March 2025.',
+   flights:[{mission:'Expedition 6',vehicle:'Shuttle',year:2002,days:161},{mission:'Expedition 30/31',vehicle:'Soyuz',year:2011,days:193},{mission:'Expedition 71/72',vehicle:'Soyuz MS-26',year:2024,days:220}],
+   records:['Oldest NASA astronaut to serve on ISS','Famous for long-exposure ISS photography']},
+  // Notable historical
+  {name:'Yuri Gagarin',agency:'Soviet',tag:'roscosmos',inSpace:false,craft:'—',role:'Cosmonaut (1934–1968)',color:'#e84040',init:'YG',
+   born:'1934',country:'USSR',flightCount:1,totalDays:0,evas:0,
+   bio:'The first human to travel to space. Gagarin orbited the Earth once aboard Vostok 1 on April 12, 1961 — a flight lasting 108 minutes. His mission proved that humans could survive in space and opened the era of human spaceflight. Died in a training jet crash in 1968 at age 34.',
+   flights:[{mission:'Vostok 1',vehicle:'Vostok 1',year:1961,days:0}],
+   records:['First human in space (April 12, 1961)','Completed one orbit in 108 minutes']},
+  {name:'Neil Armstrong',agency:'NASA',tag:'nasa',inSpace:false,craft:'—',role:'Astronaut (1930–2012)',color:'#4a9eff',init:'NA',
+   born:'1930',country:'USA',flightCount:2,totalDays:9,evas:1,
+   bio:'First human to walk on the Moon. Commander of Apollo 11. Former test pilot who flew the X-15 rocket plane to 207,500 feet. His "one small step" on July 20, 1969 was watched by an estimated 600 million people worldwide.',
+   flights:[{mission:'Gemini 8',vehicle:'Gemini',year:1966,days:1},{mission:'Apollo 11',vehicle:'Saturn V / Eagle',year:1969,days:8}],
+   records:['First human to walk on the Moon (July 20, 1969)']},
+  {name:'Valentina Tereshkova',agency:'Soviet',tag:'roscosmos',inSpace:false,craft:'—',role:'Cosmonaut (1937–)',color:'#e84040',init:'VT',
+   born:'1937',country:'USSR',flightCount:1,totalDays:3,evas:0,
+   bio:'First woman in space. Former textile worker and amateur skydiver selected for the Soviet space program. She orbited Earth 48 times over three days aboard Vostok 6 in June 1963. Remains the only woman to have flown a solo space mission.',
+   flights:[{mission:'Vostok 6',vehicle:'Vostok 6',year:1963,days:3}],
+   records:['First woman in space (June 16, 1963)','Only woman to have flown a solo space mission']},
+  {name:'Peggy Whitson',agency:'NASA',tag:'nasa',inSpace:false,craft:'—',role:'Astronaut (1960–)',color:'#4a9eff',init:'PW',
+   born:'1960',country:'USA',flightCount:4,totalDays:675,evas:10,
+   bio:'Holds the US record for most time in space (675 days). Former NASA Chief Astronaut. Biochemist. Commanded the ISS three times. Later led Axiom Mission 4 — the first Indian astronaut mission.',
+   flights:[{mission:'Expedition 5',vehicle:'Shuttle',year:2002,days:184},{mission:'Expedition 14/15',vehicle:'Soyuz',year:2006,days:191},{mission:'Expedition 50/51/52',vehicle:'Soyuz',year:2016,days:289},{mission:'Axiom Mission 4 (Commander)',vehicle:'Dragon Grace',year:2025,days:14}],
+   records:['US record: most total time in space (675 days)','10 EVAs — most by any woman','First woman to command ISS']},
+];
+
+const agencyColors={NASA:'#4a9eff',Roscosmos:'#e84040',CSA:'#00c9a7',ESA:'#00c9a7',CNSA:'#f0a500',JAXA:'#8b5cf6',Soviet:'#e84040'};
+let displayed=[...ASTRONAUTS];
+
+function filter(tag,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tag==='all')displayed=[...ASTRONAUTS];
+  else if(tag==='inspace')displayed=ASTRONAUTS.filter(a=>a.inSpace);
+  else displayed=ASTRONAUTS.filter(a=>a.tag===tag);
+  render();
+}
+
+function render(){
+  const g=document.getElementById('astro-grid');g.innerHTML='';
+  displayed.forEach(a=>{
+    const card=document.createElement('div');card.className='astro-card';
+    if(a.inSpace)card.style.borderTop=`2px solid ${agencyColors[a.agency]||'var(--blue)'}`;
+    card.innerHTML=`<div class="astro-header">
+      <div class="astro-avatar" style="background:${agencyColors[a.agency]||'var(--blue)'}22;color:${agencyColors[a.agency]||'var(--blue)'};">${a.init}</div>
+      <div style="flex:1;min-width:0;"><div class="astro-name">${a.name}</div><div class="astro-agency">${a.agency} · ${a.country}</div></div>
+      ${a.inSpace?`<span class="badge b-green">In space</span>`:''}
+    </div>
+    ${a.inSpace?`<div style="font-size:11px;margin-bottom:8px;"><span style="color:var(--muted2);">Currently: </span><span style="color:var(--blue);">${a.craft}</span> · ${a.role}</div>`:''}
+    <div class="astro-stat-row"><span class="astro-stat-label">Flights</span><span class="astro-stat-val">${a.flightCount}</span></div>
+    <div class="astro-stat-row"><span class="astro-stat-label">Days in space</span><span class="astro-stat-val">${a.totalDays}</span></div>
+    <div class="astro-stat-row"><span class="astro-stat-label">EVAs</span><span class="astro-stat-val">${a.evas}</span></div>`;
+    card.onclick=()=>openAstro(a);
+    g.appendChild(card);
+  });
+}
+
+function openAstro(a){
+  const col=agencyColors[a.agency]||'var(--blue)';
+  const av=document.getElementById('m-avatar');
+  av.textContent=a.init;av.style.background=col+'22';av.style.color=col;
+  document.getElementById('m-name').textContent=a.name;
+  document.getElementById('m-agency').textContent=a.agency+' · '+a.country+(a.inSpace?' · Currently in space':'');
+  document.getElementById('m-badges').innerHTML=`${a.inSpace?`<span class="badge b-green">In space — ${a.craft}</span>`:'<span class="badge b-purple">Alumni</span>'}<span class="badge b-blue">${a.flightCount} flights</span><span class="badge b-amber">${a.totalDays} days</span>${a.evas>0?`<span class="badge b-teal">${a.evas} EVAs</span>`:''}`;
+  document.getElementById('m-stats').innerHTML=[['Born',a.born],['Country',a.country],['Agency',a.agency],['Flights',a.flightCount],['Days in space',a.totalDays],['EVAs',a.evas]].map(s=>`<div class="st"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div></div>`).join('');
+  document.getElementById('m-bio').textContent=a.bio;
+  document.getElementById('m-flights').innerHTML=a.flights.map(f=>`<div class="mission-hist-item"><span style="color:var(--muted2);font-family:var(--mono);font-size:11px;min-width:40px;">${f.year}</span><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${f.mission}</div><div style="font-size:11px;color:var(--muted2);">${f.vehicle} · ${f.days} days</div></div></div>`).join('');
+  const rw=document.getElementById('m-records-wrap');
+  if(a.records&&a.records.length){
+    rw.style.display='block';
+    document.getElementById('m-records').innerHTML=a.records.map(r=>`<div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--muted2);"><span style="color:${col};">›</span><span>${r}</span></div>`).join('');
+  } else rw.style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+render();
+</script>
+</body>
+</html>

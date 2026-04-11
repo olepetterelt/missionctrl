@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://missionctrl.no/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://missionctrl.no/solar-system/</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://missionctrl.no/missions/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/launches/</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://missionctrl.no/starship/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://missionctrl.no/aurora/</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://missionctrl.no/eclipses/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/planets/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/comets/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/exoplanets/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/satellites/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/reentry/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/sky/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/mars/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/astronauts/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/rockets/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/agencies/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://missionctrl.no/timeline/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/quiz/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://missionctrl.no/history/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://missionctrl.no/news/</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+</urlset>

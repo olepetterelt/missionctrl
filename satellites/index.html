@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Live ISS ground track, real-time satellite positions and notable spacecraft in orbit.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Satellites — MissionCtrl.no">
+<meta property="og:description" content="Live ISS ground track, real-time satellite positions and notable spacecraft in orbit.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/satellites/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Satellites — MissionCtrl.no">
+<meta name="twitter:description" content="Live ISS ground track, real-time satellite positions and notable spacecraft in orbit.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Satellites — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.iss-tracker{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;}
+.sat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:24px;}
+.sat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;}
+.sat-card:hover{border-color:var(--border2);background:var(--bg3);}
+.sat-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.sat-type{font-size:11px;color:var(--muted2);margin-bottom:10px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.st{background:var(--bg4);border-radius:5px;padding:6px 8px;}
+.sl{font-size:10px;color:var(--muted2);margin-bottom:1px;}
+.sv{font-size:11px;font-weight:500;font-family:var(--mono);}
+.sat-desc{font-size:11px;color:var(--muted2);line-height:1.5;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.mono{font-family:var(--mono);}
+.orbit-canvas-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="satellites">
+<div class="page">
+  <div class="page-title">Satellite Tracker</div>
+  <div class="page-sub">Live ISS position and notable satellites in orbit — click for details</div>
+
+  <div class="iss-tracker">
+    <div>
+      <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;">ISS — Live Position</div>
+      <div style="font-size:18px;font-weight:500;margin-bottom:4px;" id="iss-pos">Locating...</div>
+      <div style="font-size:12px;color:var(--muted2);" id="iss-detail">Altitude ~408 km · Speed 27,600 km/h · 15.5 orbits/day</div>
+    </div>
+    <div style="display:flex;gap:16px;">
+      <div style="text-align:center;"><div style="font-size:10px;color:var(--muted2);">Latitude</div><div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--blue);" id="iss-lat">—</div></div>
+      <div style="text-align:center;"><div style="font-size:10px;color:var(--muted2);">Longitude</div><div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--blue);" id="iss-lon">—</div></div>
+    </div>
+  </div>
+
+  <div class="orbit-canvas-wrap">
+    <div class="section-title">Ground track</div>
+    <canvas id="map-canvas" style="width:100%;height:160px;border-radius:6px;background:#040a14;display:block;"></canvas>
+  </div>
+
+  <div class="section-title">Notable Active Satellites</div>
+  <div class="sat-grid" id="sat-grid"></div>
+</div>
+
+<div class="modal-backdrop" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button onclick="closeModal()" style="float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:20px;">✕</button>
+    <div style="font-size:18px;font-weight:500;margin-bottom:4px;" id="m-name"></div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;" id="m-type"></div>
+    <div id="m-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;" id="m-stats"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.7;" id="m-desc"></div>
+  </div>
+</div>
+
+<script>
+let issLat=0,issLon=0;
+let userLat=59.9,userLon=10.7;
+
+window.onLocationReady=function(loc){
+  userLat=loc.lat;userLon=loc.lon;
+  fetchISS();
+};
+
+async function fetchISS(){
+  try{
+    const r=await fetch('/functions/n2yo?type=positions&id=25544&seconds=1');
+    const d=await r.json();
+    const pos=d.positions?d.positions[0]:d;
+    issLat=parseFloat(pos.satlatitude!=null?pos.satlatitude:pos.latitude);
+    issLon=parseFloat(pos.satlongitude!=null?pos.satlongitude:pos.longitude);
+    const la=issLat>0?issLat.toFixed(2)+'°N':Math.abs(issLat).toFixed(2)+'°S';
+    const lo=issLon>0?issLon.toFixed(2)+'°E':Math.abs(issLon).toFixed(2)+'°W';
+    document.getElementById('iss-pos').textContent=la+' · '+lo;
+    document.getElementById('iss-lat').textContent=la;
+    document.getElementById('iss-lon').textContent=lo;
+    drawMap();
+  }catch(e){document.getElementById('iss-pos').textContent='API unavailable';}
+}
+
+function drawMap(){
+  const c=document.getElementById('map-canvas');
+  const W=c.offsetWidth||800,H=160;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#040a14';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const px=((issLon+180)/360)*W,py=((90-issLat)/180)*H;
+  ctx.fillStyle='rgba(74,158,255,0.15)';ctx.beginPath();ctx.arc(px,py,20,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(74,158,255,0.35)';ctx.beginPath();ctx.arc(px,py,10,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#4a9eff';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(74,158,255,0.8)';ctx.font='10px monospace';ctx.textAlign='left';ctx.fillText('ISS',px+7,py-5);
+}
+
+const SATELLITES=[
+  {name:'ISS',type:'Space station',operator:'Multi-agency',color:'var(--green)',sc:'b-green',
+   altitude:'408 km LEO',inclination:'51.6°',launched:'1998',mass:'420,000 kg',
+   desc:'The International Space Station — largest human structure in space. Houses 7 crew. 109 × 73 m solar array wingspan. Continuously occupied since November 2000. Visible to naked eye as a fast-moving bright star.',
+   stats:[['Altitude','408 km'],['Speed','27,600 km/h'],['Orbits/day','15.5'],['Crew','7'],['Mass','420,000 kg'],['Age','25+ years']]},
+  {name:'Tiangong',type:'Space station',operator:'CNSA',color:'var(--red)',sc:'b-red',
+   altitude:'390 km LEO',inclination:'41.5°',launched:'2021',mass:'~90,000 kg',
+   desc:"China's modular space station, continuously occupied since 2021. Three modules: Tianhe core, Wentian and Mengtian labs. Crew of 3, rotating every 6 months via Shenzhou spacecraft. Visible from mid-latitudes as a bright moving star.",
+   stats:[['Altitude','390 km'],['Speed','~27,600 km/h'],['Crew','3'],['Modules','3'],['Volume','340 m³'],['Launched','2021']]},
+  {name:'Hubble Space Telescope',type:'Space telescope',operator:'NASA/ESA',color:'var(--purple)',sc:'b-purple',
+   altitude:'547 km LEO',inclination:'28.5°',launched:'1990',mass:'11,110 kg',
+   desc:'Operated for 35+ years, Hubble has made over 1.5 million observations covering nearly every object in the universe. Despite an initial mirror flaw corrected in 1993, it transformed astronomy. Operating at reduced capacity after gyroscope issues.',
+   stats:[['Altitude','547 km'],['Mirror','2.4 m'],['Age','35+ years'],['Observations','1.5M+'],['Papers','20,000+'],['Status','Degraded ops']]},
+  {name:'JWST',type:'Space telescope',operator:'NASA/ESA/CSA',color:'var(--amber)',sc:'b-amber',
+   altitude:'1.5M km (L2)',inclination:'N/A',launched:'2021',mass:'6,161 kg',
+   desc:'James Webb Space Telescope at L2 Lagrange point. Infrared telescope with 6.5m mirror. Has revolutionised our view of the early universe, exoplanet atmospheres and star formation. Fuel estimated for 20+ years of operation.',
+   stats:[['Orbit','L2 point'],['Distance','1.5M km'],['Mirror','6.5 m'],['Wavelength','0.6–28 μm'],['Launched','Dec 2021'],['Fuel life','20+ years']]},
+  {name:'Starlink constellation',type:'Broadband satellite internet',operator:'SpaceX',color:'var(--blue)',sc:'b-blue',
+   altitude:'540–570 km LEO',inclination:'Various',launched:'2019',mass:'~300 kg each',
+   desc:'SpaceX\'s mega-constellation providing global broadband internet. 6,000+ satellites in operation. Visible to naked eye in strings after launch before orbit raising. Controversial for astronomical light pollution.',
+   stats:[['Satellites','6,000+'],['Altitude','540–570 km'],['Latency','20–40 ms'],['Coverage','Global'],['Launched','2019'],['Planned total','~42,000']]},
+  {name:'GPS constellation',type:'Navigation satellite system',operator:'US DoD / Space Force',color:'var(--green)',sc:'b-green',
+   altitude:'20,200 km MEO',inclination:'55°',launched:'1978',mass:'~900 kg each',
+   desc:'Global Positioning System. 31 active satellites in medium Earth orbit providing precise positioning to within centimetres for military and metres for civilian users. Backbone of modern navigation, timing and finance infrastructure.',
+   stats:[['Satellites','31 active'],['Altitude','20,200 km'],['Accuracy','<1 m military'],['Civilian acc.','3–5 m'],['Orbital period','12 hours'],['Since','1978']]},
+  {name:'Galileo',type:'Navigation satellite system',operator:'ESA / EU',color:'var(--teal)',sc:'b-teal',
+   altitude:'23,222 km MEO',inclination:'56°',launched:'2005',mass:'~700 kg each',
+   desc:'European global satellite navigation system. 30 satellites providing civilian-controlled navigation independent of US GPS. Offers higher civilian accuracy than GPS. All modern smartphones use Galileo signals.',
+   stats:[['Satellites','30'],['Altitude','23,222 km'],['Accuracy','<1 m (auth)'],['Frequency','Multiple'],['Status','Operational'],['Operator','ESA/EU']]},
+  {name:'LRO',type:'Lunar orbiter',operator:'NASA',color:'var(--teal)',sc:'b-teal',
+   altitude:'~50 km lunar',inclination:'90° polar',launched:'2009',mass:'1,916 kg',
+   desc:'Lunar Reconnaissance Orbiter — 16 years of continuous lunar mapping. Confirmed water ice at poles, produced highest-resolution lunar maps ever made. Directly supporting Artemis mission planning. Has returned 1+ petabyte of data.',
+   stats:[['Orbit','~50 km lunar'],['Resolution','0.5 m/pixel'],['Data','1+ petabyte'],['Age','16+ years'],['Launched','2009'],['Mission','Still active']]},
+  {name:'Mars Reconnaissance Orbiter',type:'Mars orbiter',operator:'NASA',color:'var(--red)',sc:'b-red',
+   altitude:'~300 km Mars',inclination:'93°',launched:'2005',mass:'2,180 kg',
+   desc:'MRO has been orbiting Mars since 2006, returning more data than all other Mars missions combined. Its HiRISE camera can resolve objects as small as 25 cm. Provided key landing site data for Curiosity, InSight and Perseverance.',
+   stats:[['Orbit','~300 km Mars'],['Resolution','25 cm/pixel'],['Data','450+ terabits'],['Age','20+ years'],['Launched','2005'],['Status','Active']]},
+  {name:'Voyager 1',type:'Interstellar probe',operator:'NASA/JPL',color:'var(--purple)',sc:'b-purple',
+   altitude:'24.3B km',inclination:'N/A',launched:'1977',mass:'721 kg',
+   desc:'Most distant human-made object. Currently in interstellar space beyond the heliopause. Still transmitting scientific data. Signal takes 22+ hours to reach Earth. Operating on ~4W of power from RTG.',
+   stats:[['Distance','24.3B km'],['Speed','17 km/s'],['Signal delay','22+ hours'],['Power','~4W'],['Launched','1977'],['Age','46+ years']]},
+];
+
+function renderSats(){
+  const g=document.getElementById('sat-grid');g.innerHTML='';
+  SATELLITES.forEach(s=>{
+    const card=document.createElement('div');card.className='sat-card';
+    card.style.borderLeft=`2px solid ${s.color}`;
+    card.innerHTML=`<div class="sat-name">${s.name}</div>
+      <div class="sat-type">${s.type} · ${s.operator}</div>
+      <div class="sg">
+        <div class="st"><div class="sl">Altitude</div><div class="sv">${s.altitude}</div></div>
+        <div class="st"><div class="sl">Launched</div><div class="sv">${s.launched}</div></div>
+      </div>
+      <div class="sat-desc">${s.desc.substring(0,110)}...</div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;"><span style="font-size:11px;color:${s.color};">Details →</span></div>`;
+    card.onclick=()=>openSat(s);
+    g.appendChild(card);
+  });
+}
+
+function openSat(s){
+  document.getElementById('m-name').textContent=s.name;
+  document.getElementById('m-type').textContent=s.type+' · '+s.operator;
+  document.getElementById('m-badges').innerHTML=`<span class="badge ${s.sc}">${s.operator}</span><span class="badge b-blue">${s.altitude}</span><span class="badge b-amber">Launched ${s.launched}</span>`;
+  document.getElementById('m-stats').innerHTML=s.stats.map(st=>`<div class="st"><div class="sl">${st[0]}</div><div class="sv">${st[1]}</div></div>`).join('');
+  document.getElementById('m-desc').textContent=s.desc;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+renderSats();
+fetchISS();
+setInterval(fetchISS,10000);
+window.addEventListener('resize',drawMap);
+</script>
+</body>
+</html>

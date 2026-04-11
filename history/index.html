@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Space history browser. Discover what happened on this date in the history of space exploration.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="This Day in Space — MissionCtrl.no">
+<meta property="og:description" content="Space history browser. Discover what happened on this date in the history of space exploration.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/history/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="This Day in Space — MissionCtrl.no">
+<meta name="twitter:description" content="Space history browser. Discover what happened on this date in the history of space exploration.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>This Day in Space — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1000px;margin:0 auto;padding:24px 16px;}
+.date-hero{text-align:center;padding:32px 0;margin-bottom:32px;}
+.date-big{font-size:48px;font-weight:500;font-family:var(--mono);color:var(--blue);line-height:1;}
+.date-label{font-size:14px;color:var(--muted2);margin-top:8px;}
+.event-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;display:flex;gap:14px;cursor:pointer;transition:all .15s;}
+.event-item:hover{border-color:var(--border2);background:var(--bg3);}
+.event-year{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--blue);min-width:60px;flex-shrink:0;padding-top:2px;}
+.event-content{flex:1;}
+.event-title{font-size:14px;font-weight:500;margin-bottom:4px;}
+.event-desc{font-size:12px;color:var(--muted2);line-height:1.6;}
+.event-tags{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.nav-btns{display:flex;gap:8px;justify-content:center;margin-bottom:28px;}
+.nav-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--muted2);cursor:pointer;font-size:12px;transition:all .15s;}
+.nav-btn:hover{color:var(--text);border-color:var(--border2);}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="history">
+<div class="page">
+  <div class="date-hero">
+    <div class="date-big" id="date-display">-- --</div>
+    <div class="date-label">in space history</div>
+  </div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="changeDay(-1)">← Previous day</button>
+    <button class="nav-btn" onclick="goToday()">Today</button>
+    <button class="nav-btn" onclick="changeDay(1)">Next day →</button>
+  </div>
+  <div class="section-title" id="events-label">Events on this date</div>
+  <div id="events-list"></div>
+</div>
+
+<script>
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let currentDate=new Date();
+
+const ALL_EVENTS=[
+  // January
+  {m:1,d:3,year:1958,title:'Explorer 1 launch — first US satellite',desc:'The United States launched its first satellite, Explorer 1, after the Soviet Sputnik launches. Explorer 1 discovered the Van Allen radiation belts.',tags:['NASA','satellite','first']},
+  {m:1,d:31,year:1958,title:'Explorer 1 confirms Van Allen belts',desc:'Data from Explorer 1 confirmed the existence of the Van Allen radiation belts — regions of charged particles trapped by Earth\'s magnetic field.',tags:['NASA','science']},
+  // February
+  {m:2,d:3,year:1966,title:'Luna 9 makes first soft lunar landing',desc:'Soviet spacecraft Luna 9 became the first spacecraft to successfully land softly on the Moon and transmit photos from the surface.',tags:['Soviet','Moon','first']},
+  {m:2,d:18,year:2021,title:'Perseverance lands on Mars',desc:'NASA\'s Perseverance rover landed in Jezero Crater, Mars. It became the first Mars mission to cache samples and is still active today.',tags:['NASA','Mars','rover']},
+  {m:2,d:20,year:1962,title:'John Glenn orbits Earth',desc:'John Glenn became the first American to orbit the Earth aboard Friendship 7, completing three orbits in about 5 hours.',tags:['NASA','human spaceflight','first']},
+  // March
+  {m:3,d:2,year:1972,title:'Pioneer 10 launches',desc:'Pioneer 10 was the first spacecraft designed to travel through the asteroid belt and make direct observations of Jupiter.',tags:['NASA','Jupiter','probe']},
+  {m:3,d:18,year:1965,title:'First spacewalk by Alexei Leonov',desc:'Soviet cosmonaut Alexei Leonov performed the first spacewalk, floating outside Voskhod 2 for 12 minutes. He nearly didn\'t make it back in.',tags:['Soviet','EVA','first']},
+  // April
+  {m:4,d:12,year:1961,title:'Yuri Gagarin — first human in space',desc:'Soviet cosmonaut Yuri Gagarin became the first human to travel into space aboard Vostok 1. He completed one orbit in 108 minutes before returning to Earth.',tags:['Soviet','human spaceflight','first']},
+  {m:4,d:12,year:1981,title:'First Space Shuttle launch — Columbia',desc:'Space Shuttle Columbia lifted off on STS-1, the first orbital test flight of NASA\'s revolutionary reusable spacecraft.',tags:['NASA','shuttle','first']},
+  {m:4,d:1,year:2026,title:'Artemis II launches — first crewed lunar mission since 1972',desc:'NASA launched Artemis II with four astronauts on a 10-day lunar flyby, the first time humans have left Earth orbit since Apollo 17 in 1972.',tags:['NASA','Artemis','Moon','human spaceflight']},
+  {m:4,d:6,year:2026,title:'Artemis II crew sets human distance record',desc:'The Artemis II crew reached 252,760 miles from Earth — farther than any human has ever traveled, surpassing Apollo 13\'s record.',tags:['NASA','Artemis','record']},
+  {m:4,d:24,year:1990,title:'Hubble Space Telescope launches',desc:'The Hubble Space Telescope was deployed from Space Shuttle Discovery. Despite an initial mirror flaw, it became one of the most productive scientific instruments ever built.',tags:['NASA','telescope','Hubble']},
+  // May
+  {m:5,d:5,year:1961,title:'Alan Shepard — first American in space',desc:'Alan Shepard became the first American in space aboard Freedom 7 on a 15-minute suborbital flight, just 23 days after Yuri Gagarin\'s orbital flight.',tags:['NASA','human spaceflight','first']},
+  {m:5,d:14,year:1973,title:'Skylab launches',desc:'NASA\'s first space station, Skylab, was launched. Three crews lived aboard for extended periods, proving humans could live and work in space long-term.',tags:['NASA','space station']},
+  // June
+  {m:6,d:16,year:1963,title:'Valentina Tereshkova — first woman in space',desc:'Soviet cosmonaut Valentina Tereshkova became the first woman to travel to space aboard Vostok 6.',tags:['Soviet','human spaceflight','first']},
+  {m:6,d:18,year:1983,title:'Sally Ride — first American woman in space',desc:'Sally Ride became the first American woman in space aboard STS-7. She was also the youngest American astronaut at the time at 32.',tags:['NASA','human spaceflight','first']},
+  // July
+  {m:7,d:4,year:1997,title:'Mars Pathfinder lands with Sojourner rover',desc:'NASA\'s Mars Pathfinder lander and Sojourner rover landed on Mars on US Independence Day, demonstrating a new low-cost approach to planetary exploration.',tags:['NASA','Mars','rover']},
+  {m:7,d:20,year:1969,title:'Apollo 11 — humans land on the Moon',desc:'Neil Armstrong and Buzz Aldrin landed on the Moon in the Sea of Tranquility. Armstrong\'s "one small step" was watched by an estimated 600 million people.',tags:['NASA','Apollo','Moon','first']},
+  {m:7,d:20,year:1976,title:'Viking 1 lands on Mars',desc:'NASA\'s Viking 1 became the first spacecraft to successfully land on Mars and conduct long-term science operations.',tags:['NASA','Mars','first']},
+  // August
+  {m:8,d:6,year:2012,title:'Curiosity rover lands on Mars',desc:'NASA\'s Curiosity rover landed in Gale Crater using the revolutionary sky crane system. It confirmed Mars once had conditions suitable for microbial life.',tags:['NASA','Mars','rover']},
+  {m:8,d:20,year:1977,title:'Voyager 2 launches',desc:'Voyager 2 launched 16 days before Voyager 1. It remains the only spacecraft to have visited all four outer planets: Jupiter, Saturn, Uranus and Neptune.',tags:['NASA','probe','Voyager']},
+  // September
+  {m:9,d:5,year:1977,title:'Voyager 1 launches',desc:'Voyager 1 launched and would go on to become the most distant human-made object, entering interstellar space in 2012.',tags:['NASA','probe','Voyager']},
+  // October
+  {m:10,d:4,year:1957,title:'Sputnik 1 — first artificial satellite',desc:'The Soviet Union launched Sputnik 1, the first artificial satellite to orbit Earth. Its simple radio beeps shocked the West and began the Space Race.',tags:['Soviet','satellite','first']},
+  {m:10,d:14,year:2024,title:'Europa Clipper launches',desc:'NASA launched the Europa Clipper spacecraft on a Falcon Heavy. It will arrive at Jupiter in 2030 to study Europa\'s subsurface ocean.',tags:['NASA','Europa','Jupiter']},
+  // November
+  {m:11,d:2,year:2000,title:'Continuous human presence in space begins',desc:'Expedition 1 arrived at the International Space Station, beginning an unbroken stretch of human habitation in space that continues to this day.',tags:['ISS','human spaceflight','record']},
+  {m:11,d:16,year:2022,title:'Artemis I launches',desc:'NASA\'s SLS rocket and Orion spacecraft launched on their first flight, sending an uncrewed Orion around the Moon and back.',tags:['NASA','Artemis','Moon']},
+  // December
+  {m:12,d:7,year:1972,title:'Apollo 17 — last humans on the Moon (so far)',desc:'Apollo 17 lifted off — the last time humans left Earth orbit until Artemis II in 2026. Gene Cernan was the last human to walk on the Moon.',tags:['NASA','Apollo','Moon']},
+  {m:12,d:25,year:2021,title:'James Webb Space Telescope launches',desc:'JWST launched on Christmas Day on an Ariane 5 rocket from Kourou. It has since revolutionised our view of the universe.',tags:['NASA','ESA','telescope','JWST']},
+];
+
+function changeDay(delta){
+  currentDate=new Date(currentDate.getTime()+delta*86400000);
+  render();
+}
+function goToday(){currentDate=new Date();render();}
+
+function render(){
+  const m=currentDate.getMonth()+1,d=currentDate.getDate();
+  document.getElementById('date-display').textContent=`${String(d).padStart(2,'0')} ${MONTH_SHORT[m-1].toUpperCase()}`;
+  document.getElementById('events-label').textContent=`Events on ${MONTHS[m-1]} ${d}`;
+  const events=ALL_EVENTS.filter(e=>e.m===m&&e.d===d).sort((a,b)=>a.year-b.year);
+  const el=document.getElementById('events-list');
+  el.innerHTML='';
+  if(!events.length){
+    el.innerHTML=`<div style="color:var(--muted2);font-size:13px;padding:20px 0;">No recorded space history events found for ${MONTHS[m-1]} ${d}. Try browsing other dates.</div>`;
+    return;
+  }
+  const tagColors={NASA:'b-blue',Soviet:'b-red',ESA:'b-teal',first:'b-green',Moon:'b-amber',Mars:'b-red',ISS:'b-green',record:'b-purple',telescope:'b-purple',Artemis:'b-blue',rover:'b-amber',probe:'b-purple',shuttle:'b-blue','human spaceflight':'b-green',Jupiter:'b-amber',satellite:'b-blue',EVA:'b-teal',Apollo:'b-amber',Voyager:'b-purple',JWST:'b-purple',Europa:'b-teal',CNSA:'b-red',science:'b-teal'};
+  events.forEach(e=>{
+    const item=document.createElement('div');item.className='event-item';
+    const yearsAgo=new Date().getFullYear()-e.year;
+    item.innerHTML=`<div class="event-year">${e.year}</div>
+      <div class="event-content">
+        <div class="event-title">${e.title}</div>
+        <div class="event-desc">${e.desc}</div>
+        <div class="event-tags">
+          ${e.tags.map(t=>`<span class="badge ${tagColors[t]||'b-blue'}">${t}</span>`).join('')}
+          ${yearsAgo>0?`<span class="badge b-purple">${yearsAgo} years ago</span>`:'<span class="badge b-green">This year</span>'}
+        </div>
+      </div>`;
+    el.appendChild(item);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Active and upcoming space missions across all agencies. Artemis, ISS, Mars rovers, deep space probes and more.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Missions — MissionCtrl.no">
+<meta property="og:description" content="Active and upcoming space missions across all agencies. Artemis, ISS, Mars rovers, deep space probes and more.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/missions/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Missions — MissionCtrl.no">
+<meta name="twitter:description" content="Active and upcoming space missions across all agencies. Artemis, ISS, Mars rovers, deep space probes and more.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Missions — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-header{margin-bottom:28px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:32px;}
+.mission-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+.mission-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.mission-card:hover{border-color:var(--border2);background:var(--bg3);}
+.mission-card-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.mission-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.mission-title{font-size:14px;font-weight:500;margin-bottom:3px;}
+.mission-agency{font-size:11px;color:var(--muted2);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.b-orange{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(251,146,60,.2);}
+.mission-desc{font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:12px;}
+.mission-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.stat{background:var(--bg4);border-radius:6px;padding:7px 9px;}
+.stat-label{font-size:10px;color:var(--muted2);margin-bottom:2px;}
+.stat-val{font-size:12px;font-weight:500;font-family:var(--mono);}
+.mission-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
+.progress-wrap{margin-top:10px;}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted2);margin-bottom:4px;}
+.progress-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s;}
+.timeline{margin-bottom:32px;}
+.timeline-item{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--border);}
+.timeline-item:last-child{border-bottom:none;}
+.timeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.timeline-content{flex:1;}
+.timeline-date{font-size:10px;color:var(--muted2);margin-bottom:2px;font-family:var(--mono);}
+.timeline-title{font-size:13px;font-weight:500;margin-bottom:3px;}
+.timeline-desc{font-size:11px;color:var(--muted2);line-height:1.5;}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(74,158,255,.1);color:var(--blue);border-color:rgba(74,158,255,.3);}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:680px;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.modal-title{font-size:18px;font-weight:500;}
+.modal-close{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:20px;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="missions">
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">Space Missions</div>
+    <div class="page-sub">Active, completed and upcoming missions across all agencies</div>
+  </div>
+
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" onclick="filterMissions('all')">All</button>
+    <button class="filter-btn" onclick="filterMissions('active')">Active</button>
+    <button class="filter-btn" onclick="filterMissions('upcoming')">Upcoming</button>
+    <button class="filter-btn" onclick="filterMissions('lunar')">Lunar</button>
+    <button class="filter-btn" onclick="filterMissions('mars')">Mars</button>
+    <button class="filter-btn" onclick="filterMissions('deep')">Deep Space</button>
+    <button class="filter-btn" onclick="filterMissions('nasa')">NASA</button>
+    <button class="filter-btn" onclick="filterMissions('cnsa')">CNSA</button>
+    <button class="filter-btn" onclick="filterMissions('esa')">ESA</button>
+  </div>
+
+  <div class="section-title">Active Missions</div>
+  <div class="mission-grid" id="mission-grid"></div>
+
+  <div class="section-title">Mission Timeline — Key Events 2026–2030</div>
+  <div class="timeline" id="timeline"></div>
+</div>
+
+<!-- Mission Detail Modal -->
+<div class="modal-backdrop" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="m-title"></div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="m-agency"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="m-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+    <div class="modal-grid" id="m-stats"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Overview</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.7;" id="m-desc"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Objectives</div>
+    <div id="m-objectives"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Timeline</div>
+    <div id="m-timeline"></div>
+  </div>
+</div>
+
+<script>
+const MISSIONS = [
+  {
+    id:'artemis2', title:'Artemis II', agency:'NASA', icon:'🚀', color:'var(--blue)', accentClass:'b-blue',
+    status:'In Flight', statusClass:'b-blue', tags:['active','lunar','nasa'],
+    launch:'Apr 1, 2026', target:'Moon (flyby)', duration:'10 days', vehicle:'SLS Block 1 + Orion',
+    progress:85,
+    desc:'First crewed mission of the Artemis program and the first time humans have traveled beyond low Earth orbit since Apollo 17 in 1972. Four astronauts aboard the Orion spacecraft named "Integrity" are performing a free-return trajectory around the Moon. The mission is a critical systems test before the first lunar landing attempt.',
+    objectives:[
+      'Verify Orion life support and crew systems in deep space',
+      'Test propulsion, power, thermal and navigation systems',
+      'Perform lunar flyby and set new human distance record',
+      'Validate heat shield performance during high-speed reentry',
+      'Assess crew habitability over a 10-day deep space mission',
+    ],
+    timeline:[
+      {date:'Apr 1 2026', event:'Launch from KSC LC-39B', done:true},
+      {date:'Apr 2 2026', event:'Translunar injection burn', done:true},
+      {date:'Apr 6 2026', event:'Lunar flyby — new distance record set', done:true},
+      {date:'Apr 10 2026', event:'Splashdown off San Diego', done:false},
+    ],
+    stats:[['Crew','4 astronauts'],['Distance','252,760 mi max'],['Speed','24,500 mph reentry'],['Orbit','Free-return trajectory']],
+    crew:['Reid Wiseman (CDR)','Victor Glover (PLT)','Christina Koch (MS)','Jeremy Hansen (MS)'],
+  },
+  {
+    id:'iss', title:'ISS — Expedition 74', agency:'NASA/Roscosmos/ESA/JAXA/CSA', icon:'🛰', color:'var(--green)', accentClass:'b-green',
+    status:'Active', statusClass:'b-green', tags:['active','nasa','esa'],
+    launch:'Continuous since Nov 2000', target:'Low Earth Orbit (408 km)', duration:'Ongoing', vehicle:'Various',
+    progress:100,
+    desc:'The International Space Station is the largest human-made structure in space and has been continuously inhabited since November 2, 2000. It serves as a microgravity and space environment research laboratory. Seven crew members from multiple nations currently conduct hundreds of experiments across biology, physics, astronomy and materials science.',
+    objectives:[
+      'Conduct microgravity science across 250+ active experiments',
+      'Maintain station systems and perform EVAs as needed',
+      'Support commercial crew and cargo vehicle operations',
+      'Prepare for transition to commercial space stations post-2030',
+      'Study long-duration spaceflight effects on human physiology',
+    ],
+    timeline:[
+      {date:'Nov 2 2000', event:'Continuous human habitation begins', done:true},
+      {date:'Feb 2026', event:'SpaceX Crew-12 arrives', done:true},
+      {date:'Apr 2026', event:'Expedition 74 ongoing', done:true},
+      {date:'2030', event:'ISS deorbit planning begins', done:false},
+    ],
+    stats:[['Altitude','408 km'],['Speed','27,600 km/h'],['Crew','7 people'],['Orbits/day','15.5']],
+  },
+  {
+    id:'jwst', title:'James Webb Space Telescope', agency:'NASA/ESA/CSA', icon:'🔭', color:'var(--amber)', accentClass:'b-amber',
+    status:'Operational', statusClass:'b-amber', tags:['active','deep','nasa','esa'],
+    launch:'Dec 25, 2021', target:'L2 Lagrange Point (1.5M km)', duration:'20+ year fuel supply', vehicle:'Ariane 5',
+    progress:100,
+    desc:'The most powerful space telescope ever built. JWST observes in infrared wavelengths, allowing it to peer through cosmic dust clouds and observe the earliest galaxies formed just 300 million years after the Big Bang. It has already revolutionised our understanding of galaxy formation, exoplanet atmospheres, and star-forming regions. Operating far beyond original specifications.',
+    objectives:[
+      'Observe first galaxies formed after the Big Bang',
+      'Study exoplanet atmospheres for signs of habitability',
+      'Observe star and planetary system formation in detail',
+      'Map dark matter distribution across the universe',
+      'Study objects in our own solar system in unprecedented detail',
+    ],
+    timeline:[
+      {date:'Dec 25 2021', event:'Launch from Kourou, French Guiana', done:true},
+      {date:'Jan 24 2022', event:'Arrives at L2 point', done:true},
+      {date:'Jul 12 2022', event:'First science images released', done:true},
+      {date:'2041+', event:'Fuel expected to last', done:false},
+    ],
+    stats:[['Mirror','6.5 m primary'],['Orbit','L2 point'],['Wavelength','0.6–28 μm infrared'],['Fuel life','20+ years']],
+  },
+  {
+    id:'perseverance', title:'Perseverance Rover', agency:'NASA/JPL', icon:'🤖', color:'var(--red)', accentClass:'b-red',
+    status:'Active', statusClass:'b-green', tags:['active','mars','nasa'],
+    launch:'Jul 30, 2020', target:'Jezero Crater, Mars', duration:'Ongoing (4+ yrs)', vehicle:'Atlas V 541',
+    progress:100,
+    desc:'NASA\'s most advanced Mars rover, Perseverance is searching for signs of ancient microbial life in Jezero Crater — a 45 km wide ancient lake delta. It is caching rock and soil samples in sealed tubes for eventual return to Earth on the Mars Sample Return mission. Its Ingenuity helicopter has made 70+ flights, proving powered flight on another planet.',
+    objectives:[
+      'Search for biosignatures and signs of ancient microbial life',
+      'Collect and cache up to 43 rock/soil samples for return to Earth',
+      'Demonstrate oxygen production from Martian CO₂ (MOXIE)',
+      'Characterise weather and surface conditions for future human missions',
+      'Demonstrate technology for future human exploration of Mars',
+    ],
+    timeline:[
+      {date:'Jul 30 2020', event:'Launch from Cape Canaveral', done:true},
+      {date:'Feb 18 2021', event:'Landing in Jezero Crater', done:true},
+      {date:'Apr 19 2021', event:'Ingenuity helicopter first flight', done:true},
+      {date:'2026', event:'23+ samples cached, MSR planning ongoing', done:true},
+      {date:'2030s', event:'Mars Sample Return retrieval planned', done:false},
+    ],
+    stats:[['Location','Jezero Crater'],['Distance driven','>28 km'],['Samples cached','23 tubes'],['Power','RTG — 110W']],
+  },
+  {
+    id:'voyager1', title:'Voyager 1', agency:'NASA/JPL', icon:'🛸', color:'var(--purple)', accentClass:'b-purple',
+    status:'Interstellar space', statusClass:'b-purple', tags:['active','deep','nasa'],
+    launch:'Sep 5, 1977', target:'Interstellar space', duration:'46+ years', vehicle:'Titan IIIE',
+    progress:100,
+    desc:'The most distant human-made object ever built. Voyager 1 crossed into interstellar space in August 2012, becoming the first spacecraft to exit the heliosphere. Despite being launched 46 years ago, it still transmits scientific data back to Earth. Engineers recently resolved a complex computer glitch using creative memory management to keep it operational.',
+    objectives:[
+      'Explore outer solar system planets (completed — Jupiter 1979, Saturn 1980)',
+      'Cross heliopause into interstellar space (completed 2012)',
+      'Measure plasma, magnetic fields and cosmic rays in interstellar medium',
+      'Continue transmitting until power fails (~2025–2030)',
+    ],
+    timeline:[
+      {date:'Sep 5 1977', event:'Launch', done:true},
+      {date:'Mar 5 1979', event:'Jupiter flyby', done:true},
+      {date:'Nov 12 1980', event:'Saturn flyby', done:true},
+      {date:'Aug 2012', event:'Crosses heliopause — enters interstellar space', done:true},
+      {date:'2025–2030', event:'RTG power exhaustion expected', done:false},
+    ],
+    stats:[['Distance','~24.3B km'],['Speed','17 km/s'],['Signal delay','~22.5 hours'],['Power','~4W remaining']],
+  },
+  {
+    id:'europaClipper', title:'Europa Clipper', agency:'NASA/JPL', icon:'💧', color:'var(--blue)', accentClass:'b-blue',
+    status:'En route to Jupiter', statusClass:'b-blue', tags:['active','deep','nasa'],
+    launch:'Oct 14, 2024', target:'Europa (Jupiter moon)', duration:'~6 years', vehicle:'Falcon Heavy',
+    progress:18,
+    desc:'Europa Clipper will conduct 49 close flybys of Jupiter\'s moon Europa, which harbours a vast subsurface ocean beneath its icy crust. Scientists believe this ocean may contain the conditions necessary for life. The spacecraft will use radar to peer through the ice, analyse the thin atmosphere, and map the surface in detail.',
+    objectives:[
+      'Determine thickness of Europa\'s ice shell and ocean depth',
+      'Search for subsurface water and assess habitability',
+      'Analyse Europa\'s thin atmosphere and surface composition',
+      'Study geological activity and possible water plumes',
+      'Assess radiation environment for future lander missions',
+    ],
+    timeline:[
+      {date:'Oct 14 2024', event:'Launch on Falcon Heavy', done:true},
+      {date:'Dec 2024', event:'Mars gravity assist', done:true},
+      {date:'2026', event:'Earth gravity assist flyby', done:false},
+      {date:'Apr 2030', event:'Jupiter orbit insertion', done:false},
+      {date:'2030–2034', event:'49 Europa flybys', done:false},
+    ],
+    stats:[['Distance','~1B km from Earth'],['Arrival','April 2030'],['Flybys','49 planned'],['Instruments','9 science instruments']],
+  },
+  {
+    id:'lro', title:'Lunar Reconnaissance Orbiter', agency:'NASA/GSFC', icon:'🌕', color:'var(--teal)', accentClass:'b-teal',
+    status:'Lunar orbit', statusClass:'b-teal', tags:['active','lunar','nasa'],
+    launch:'Jun 18, 2009', target:'Polar lunar orbit (~50 km)', duration:'16+ years', vehicle:'Atlas V',
+    progress:100,
+    desc:'LRO has been continuously mapping the Moon since 2009, accumulating over 1 petabyte of data. It confirmed water ice in permanently shadowed craters at the poles and has produced the most detailed lunar maps ever made. Directly supporting Artemis mission site selection and ongoing science.',
+    objectives:[
+      'Map entire lunar surface in unprecedented detail',
+      'Identify and characterise water ice deposits at poles',
+      'Measure radiation environment for future human missions',
+      'Support Artemis landing site selection and safety assessment',
+      'Observe changes in lunar surface over time',
+    ],
+    timeline:[
+      {date:'Jun 18 2009', event:'Launch', done:true},
+      {date:'Sep 2009', event:'LCROSS impact confirms water ice', done:true},
+      {date:'2009–2026', event:'Continuous mapping operations', done:true},
+      {date:'2026+', event:'Artemis landing site support continues', done:false},
+    ],
+    stats:[['Orbit','~50 km polar'],['Data collected','1+ petabyte'],['Resolution','0.5 m/pixel'],['In service','16+ years']],
+  },
+  {
+    id:'changte7', title:"Chang'e 7", agency:'CNSA (China)', icon:'🌙', color:'var(--amber)', accentClass:'b-amber',
+    status:'Upcoming', statusClass:'b-amber', tags:['upcoming','lunar','cnsa'],
+    launch:'Aug 2026 (planned)', target:'Lunar south pole', duration:'~1 year', vehicle:'Long March 5',
+    progress:0,
+    desc:"China's most ambitious lunar mission to date. A five-spacecraft stack including an orbiter, relay satellite, lander, rover, and a unique hopper probe. The hopper will use rocket propulsion to fly into permanently shadowed craters and search for water ice using a water molecule analyzer — the first direct search for ice inside lunar cold traps.",
+    objectives:[
+      'Land at lunar south pole — Shackleton crater rim',
+      'Deploy hopper into permanently shadowed craters to detect water ice',
+      'Map resources and environment at lunar south pole',
+      'Test technologies for future crewed lunar presence',
+      'Lay groundwork for International Lunar Research Station',
+    ],
+    timeline:[
+      {date:'2022', event:'Mission officially approved by CNSA', done:true},
+      {date:'Mar 2024', event:'Queqiao-2 relay satellite launched', done:true},
+      {date:'Aug 2026', event:'Chang\'e 7 launch (planned)', done:false},
+      {date:'Late 2026', event:'Lunar south pole landing', done:false},
+      {date:'2027', event:'First ice detection results expected', done:false},
+    ],
+    stats:[['Launch','Aug 2026'],['Target','South pole'],['Key payload','Water molecule analyzer'],['Hopper range','10+ km per hop']],
+  },
+  {
+    id:'artemis4', title:'Artemis IV', agency:'NASA', icon:'🧑‍🚀', color:'var(--blue)', accentClass:'b-blue',
+    status:'Upcoming', statusClass:'b-purple', tags:['upcoming','lunar','nasa'],
+    launch:'Early 2028 (planned)', target:'Lunar surface — south pole', duration:'~30 days', vehicle:'SLS Block 1B',
+    progress:0,
+    desc:'The first crewed lunar landing since Apollo 17 in December 1972. Astronauts will launch aboard Orion, transfer to a commercial lunar lander (SpaceX Starship HLS or Blue Origin Blue Moon) in lunar orbit, and descend to the surface near the south pole. Marks the beginning of sustained human presence on the Moon.',
+    objectives:[
+      'First crewed lunar surface landing since Apollo 17 (1972)',
+      'Land near lunar south pole to access water ice resources',
+      'Conduct multiple EVAs to collect samples and deploy instruments',
+      'Test spacesuits, tools and procedures for long-duration surface ops',
+      'Begin assessment of south pole terrain for future base construction',
+    ],
+    timeline:[
+      {date:'2027', event:'Artemis III LEO test of commercial landers', done:false},
+      {date:'Early 2028', event:'Artemis IV launch', done:false},
+      {date:'2028', event:'First humans on Moon since 1972', done:false},
+      {date:'Late 2028', event:'Artemis V — second south pole landing', done:false},
+    ],
+    stats:[['Launch','Early 2028'],['Lander','Starship HLS / Blue Moon'],['Surface stay','~7 days'],['EVAs','4 planned']],
+  },
+];
+
+const TIMELINE = [
+  {date:'Apr 10 2026', title:'Artemis II splashdown', color:'var(--blue)', desc:'First crewed deep space mission since Apollo 17 returns to Earth off San Diego.'},
+  {date:'Apr 2026', title:'Cygnus NG-24 ISS docking', color:'var(--green)', desc:'Northrop Grumman Cygnus cargo resupply arrives at ISS with ~3,700 kg of supplies.'},
+  {date:'Aug 2026', title:"Chang'e 7 launch", color:'var(--amber)', desc:"China launches its south pole mission to search for water ice."},
+  {date:'Late 2026', title:"Chang'e 7 landing", color:'var(--amber)', desc:'First landing at lunar south pole by China. Hopper begins water ice search.'},
+  {date:'Mid 2027', title:'Artemis III (LEO test)', color:'var(--blue)', desc:'Crewed test of commercial landers in low Earth orbit.'},
+  {date:'Early 2028', title:'Artemis IV — lunar landing', color:'var(--blue)', desc:'First humans on Moon since 1972. South pole landing.'},
+  {date:'Mid 2028', title:"Chang'e 8 launch", color:'var(--amber)', desc:'ISRU technology test at south pole. 3D printing with lunar regolith.'},
+  {date:'Late 2028', title:'Artemis V — second landing', color:'var(--blue)', desc:'Second crewed lunar landing, different south pole site.'},
+  {date:'Apr 2030', title:'Europa Clipper arrives at Jupiter', color:'var(--teal)', desc:'Begins 49 close flybys of Europa to search for habitability.'},
+  {date:'2030s', title:'ILRS construction begins', color:'var(--amber)', desc:"China-led International Lunar Research Station construction starts at south pole."},
+  {date:'2030s', title:'Mars Sample Return', color:'var(--red)', desc:'Perseverance rock samples returned to Earth for laboratory analysis.'},
+];
+
+let currentFilter = 'all';
+
+function filterMissions(tag) {
+  currentFilter = tag;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderMissions();
+}
+
+function renderMissions() {
+  const grid = document.getElementById('mission-grid');
+  const filtered = currentFilter === 'all' ? MISSIONS : MISSIONS.filter(m => m.tags.includes(currentFilter));
+  grid.innerHTML = '';
+  filtered.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'mission-card';
+    card.style.setProperty('--accent', m.color);
+    card.style.cssText += `border-top: 2px solid ${m.color}22;`;
+    const progressBar = m.status !== 'Upcoming' ?
+      `<div class="progress-wrap">
+        <div class="progress-label"><span>Mission progress</span><span>${m.progress}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%;background:${m.color};"></div></div>
+      </div>` : '';
+    card.innerHTML = `
+      <div class="mission-card-header">
+        <div class="mission-icon" style="background:${m.color}18;">${m.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-agency">${m.agency}</div>
+        </div>
+        <span class="badge ${m.statusClass}">${m.status}</span>
+      </div>
+      <div class="mission-desc">${m.desc.substring(0,160)}...</div>
+      <div class="mission-stats">
+        ${m.stats.slice(0,4).map(s=>`<div class="stat"><div class="stat-label">${s[0]}</div><div class="stat-val">${s[1]}</div></div>`).join('')}
+      </div>
+      ${progressBar}
+      <div class="mission-footer">
+        <div style="font-size:10px;color:var(--muted2);">Launch: ${m.launch}</div>
+        <span style="color:${m.color};font-size:12px;">Details →</span>
+      </div>`;
+    card.onclick = () => openMission(m);
+    grid.appendChild(card);
+  });
+}
+
+function openMission(m) {
+  document.getElementById('m-title').textContent = m.title;
+  document.getElementById('m-agency').textContent = m.agency;
+  document.getElementById('m-badges').innerHTML = `
+    <span class="badge ${m.statusClass}">${m.status}</span>
+    <span class="badge b-blue">${m.target}</span>
+    ${m.tags.map(t=>`<span class="badge b-purple">${t}</span>`).join('')}`;
+  document.getElementById('m-stats').innerHTML = m.stats.map(s =>
+    `<div class="stat"><div class="stat-label">${s[0]}</div><div class="stat-val">${s[1]}</div></div>`
+  ).join('');
+  document.getElementById('m-desc').textContent = m.desc;
+  document.getElementById('m-objectives').innerHTML = m.objectives ? m.objectives.map(o =>
+    `<div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--muted2);">
+      <span style="color:${m.color};flex-shrink:0;">›</span><span>${o}</span></div>`
+  ).join('') : '<div style="color:var(--muted2);font-size:12px;">No objectives listed.</div>';
+  document.getElementById('m-timeline').innerHTML = m.timeline ? m.timeline.map(t =>
+    `<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <div style="width:6px;height:6px;border-radius:50%;background:${t.done?m.color:'var(--muted)'};flex-shrink:0;margin-top:4px;"></div>
+      <div><div style="font-size:10px;color:var(--muted2);font-family:monospace;">${t.date}</div>
+      <div style="font-size:12px;${t.done?'':'color:var(--muted2);'}">${t.event}</div></div></div>`
+  ).join('') : '';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function renderTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = TIMELINE.map(t => `
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:${t.color};"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${t.date}</div>
+        <div class="timeline-title">${t.title}</div>
+        <div class="timeline-desc">${t.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+renderMissions();
+renderTimeline();
+</script>
+</body>
+</html>

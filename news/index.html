@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Latest space news from NASA, ESA, SpaceX and more. Live feed with NASA Picture of the Day.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Space News — MissionCtrl.no">
+<meta property="og:description" content="Latest space news from NASA, ESA, SpaceX and more. Live feed with NASA Picture of the Day.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/news/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Space News — MissionCtrl.no">
+<meta name="twitter:description" content="Latest space news from NASA, ESA, SpaceX and more. Live feed with NASA Picture of the Day.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Space News — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(74,158,255,.1);color:var(--blue);border-color:rgba(74,158,255,.3);}
+.news-featured{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;cursor:pointer;transition:all .15s;}
+.news-featured:hover{border-color:var(--border2);background:var(--bg3);}
+.news-featured-label{font-size:10px;font-weight:500;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:8px;}
+.news-featured-title{font-size:16px;font-weight:500;margin-bottom:8px;line-height:1.4;}
+.news-featured-title:hover{color:var(--blue);}
+.news-featured-desc{font-size:12px;color:var(--muted2);line-height:1.65;margin-bottom:10px;}
+.news-featured-meta{font-size:11px;color:var(--muted2);}
+.news-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.news-item:last-child{border-bottom:none;}
+.news-item:hover .news-item-title{color:var(--blue);}
+.news-item-title{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.4;transition:color .15s;}
+.news-item-meta{font-size:11px;color:var(--muted2);}
+.news-item-badge{flex-shrink:0;margin-top:3px;}
+.sidebar-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.sidebar-title{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;}
+.source-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.source-item:last-child{border-bottom:none;}
+.source-name{color:var(--text);}
+.source-link{color:var(--blue);font-size:11px;text-decoration:none;}
+.source-link:hover{text-decoration:underline;}
+.trending-item{padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted2);cursor:pointer;}
+.trending-item:last-child{border-bottom:none;}
+.trending-item:hover{color:var(--text);}
+.trending-num{color:var(--blue);font-family:var(--mono);margin-right:8px;}
+.apod-img{width:100%;border-radius:6px;object-fit:cover;height:160px;cursor:pointer;margin-bottom:8px;}
+.apod-title{font-size:12px;font-weight:500;margin-bottom:4px;}
+.apod-desc{font-size:11px;color:var(--muted2);line-height:1.5;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="news">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Space News</div>
+      <div class="page-sub">Latest from across the space industry — live from multiple sources</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted2);margin-top:4px;" id="last-updated"></div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterNews('all',this)">All</button>
+        <button class="filter-btn" onclick="filterNews('artemis',this)">Artemis</button>
+        <button class="filter-btn" onclick="filterNews('mars',this)">Mars</button>
+        <button class="filter-btn" onclick="filterNews('china',this)">China</button>
+        <button class="filter-btn" onclick="filterNews('spacex',this)">SpaceX</button>
+        <button class="filter-btn" onclick="filterNews('iss',this)">ISS</button>
+        <button class="filter-btn" onclick="filterNews('science',this)">Science</button>
+      </div>
+
+      <div class="section-title">Featured</div>
+      <div id="featured-news"></div>
+
+      <div class="section-title" style="margin-top:20px;">Latest Articles</div>
+      <div id="news-list"></div>
+
+      <div style="text-align:center;margin-top:20px;">
+        <button onclick="loadMore()" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 20px;color:var(--muted2);cursor:pointer;font-size:12px;" id="load-more-btn">Load more</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-card" id="apod-card">
+        <div class="sidebar-title">NASA — Picture of the Day</div>
+        <div id="apod-content"><div style="color:var(--muted2);font-size:11px;">Loading...</div></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Trending Topics</div>
+        <div id="trending"></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">News Sources</div>
+        <div class="source-item"><span class="source-name">NASA News</span><a class="source-link" href="https://nasa.gov/news" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">SpaceNews</span><a class="source-link" href="https://spacenews.com" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">Ars Technica Space</span><a class="source-link" href="https://arstechnica.com/space" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">SpaceflightNow</span><a class="source-link" href="https://spaceflightnow.com" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">The Planetary Society</span><a class="source-link" href="https://planetary.org" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">NASASpaceFlight</span><a class="source-link" href="https://nasaspaceflight.com" target="_blank">Visit →</a></div>
+        <div class="source-item"><span class="source-name">Space.com</span><a class="source-link" href="https://space.com" target="_blank">Visit →</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FALLBACK_NEWS = [
+  {title:'Artemis II crew completes historic lunar flyby, begins return to Earth',site:'NASA',date:'8 Apr 2026',url:'https://nasa.gov',tag:'artemis',featured:true,
+   desc:'Four astronauts aboard NASA\'s Orion spacecraft completed the first crewed lunar flyby since Apollo 17, setting a new human distance record of 252,760 miles from Earth. The crew — Reid Wiseman, Victor Glover, Christina Koch and Jeremy Hansen — are now en route home for splashdown off San Diego on April 10.'},
+  {title:"Chang'e-7 targeting August 2026 south pole landing, hopper confirmed",site:'SpaceNews',date:'7 Apr 2026',url:'https://spacenews.com',tag:'china',featured:false,
+   desc:"China's ambitious lunar south pole mission confirmed for August launch window."},
+  {title:'NASA outlines near-monthly robotic lunar landing cadence starting 2027',site:'Ars Technica',date:'6 Apr 2026',url:'https://arstechnica.com',tag:'artemis',featured:false,
+   desc:'NASA administrator confirms plan for aggressive commercial lunar payload delivery schedule.'},
+  {title:'Perseverance rover caches 23rd Mars rock sample near ancient river delta',site:'JPL',date:'5 Apr 2026',url:'https://mars.nasa.gov',tag:'mars',featured:false,
+   desc:'NASA\'s rover continues building the cache of samples awaiting eventual return to Earth.'},
+  {title:'JWST reveals most detailed view yet of early galaxy formation at z>10',site:'ESA/Webb',date:'4 Apr 2026',url:'https://webb.nasa.gov',tag:'science',featured:false,
+   desc:'New observations push back the confirmed boundary of galaxy formation closer to the Big Bang.'},
+  {title:'SpaceX Starship Flight 12 planned for late April from Boca Chica',site:'NASASpaceFlight',date:'3 Apr 2026',url:'https://nasaspaceflight.com',tag:'spacex',featured:false,
+   desc:'Continuing incremental testing of the world\'s largest rocket ahead of NASA HLS certification.'},
+  {title:'ISS Expedition 74 crew conducts plant biology experiment harvest',site:'NASA',date:'2 Apr 2026',url:'https://nasa.gov',tag:'iss',featured:false,
+   desc:'Crew harvests fresh vegetables grown aboard the station as part of ongoing VEGGIE research.'},
+  {title:'Blue Origin completes Blue Moon lander engine qualification tests',site:'Space.com',date:'1 Apr 2026',url:'https://space.com',tag:'artemis',featured:false,
+   desc:'Major milestone toward certification for Artemis IV lunar landing mission in 2028.'},
+  {title:'Tiangong Shenzhou-21 crew approaches 150 days in orbit milestone',site:'CNSA',date:'31 Mar 2026',url:'https://cnsa.gov.cn',tag:'china',featured:false,
+   desc:'Zhang Lu, Wu Fei and Zhang Hongzhang approaching landmark halfway point of their mission.'},
+  {title:'Europa Clipper transmits first engineering data from deep space cruise',site:'JPL',date:'30 Mar 2026',url:'https://nasa.gov',tag:'science',featured:false,
+   desc:'All nine science instruments confirmed healthy as spacecraft continues journey to Jupiter system.'},
+];
+
+const TRENDING = [
+  'Artemis II splashdown','Chang\'e-7 water ice','Lunar south pole race','Mars Sample Return delay','Starship HLS certification','Europa ocean habitability','ISS deorbit planning','Solar cycle 25 peak',
+];
+
+let allNews = [...FALLBACK_NEWS];
+let displayedNews = [...FALLBACK_NEWS];
+let page = 0;
+const PAGE_SIZE = 6;
+
+function getCategoryBadge(tag) {
+  const map = {artemis:'b-blue',mars:'b-red',china:'b-amber',spacex:'b-blue',iss:'b-green',science:'b-purple'};
+  return `<span class="badge ${map[tag]||'b-blue'}">${tag}</span>`;
+}
+
+async function fetchNews() {
+  try {
+    const r = await fetch('https://api.spaceflightnewsapi.net/v4/articles/?limit=20&format=json');
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    if(d.results && d.results.length) {
+      allNews = d.results.map((a,i) => ({
+        title: a.title, site: a.news_site,
+        date: new Date(a.published_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+        url: a.url, featured: i === 0,
+        tag: a.title.toLowerCase().includes('artemis')?'artemis':
+             a.title.toLowerCase().includes('mars')?'mars':
+             a.title.toLowerCase().includes('china')||a.title.toLowerCase().includes('chang')?'china':
+             a.title.toLowerCase().includes('spacex')||a.title.toLowerCase().includes('starship')?'spacex':
+             a.title.toLowerCase().includes('iss')||a.title.toLowerCase().includes('station')?'iss':'science',
+        desc: a.summary || '',
+      }));
+      displayedNews = [...allNews];
+      document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    }
+  } catch(e) {}
+  renderNews();
+}
+
+function filterNews(tag, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  page = 0;
+  displayedNews = tag === 'all' ? [...allNews] : allNews.filter(n => n.tag === tag);
+  renderNews();
+}
+
+function renderNews() {
+  const featured = displayedNews.find(n => n.featured) || displayedNews[0];
+  const rest = displayedNews.filter(n => n !== featured).slice(0, PAGE_SIZE);
+
+  const fEl = document.getElementById('featured-news');
+  if(featured) {
+    fEl.innerHTML = `<div class="news-featured" onclick="window.open('${featured.url}','_blank')">
+      <div class="news-featured-label">Featured · ${featured.site}</div>
+      <div class="news-featured-title">${featured.title}</div>
+      <div class="news-featured-desc">${featured.desc || ''}</div>
+      <div class="news-featured-meta">${featured.date} ${getCategoryBadge(featured.tag)}</div>
+    </div>`;
+  }
+
+  const nEl = document.getElementById('news-list');
+  nEl.innerHTML = '';
+  rest.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'news-item';
+    item.innerHTML = `
+      <div class="news-item-badge">${getCategoryBadge(n.tag)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="news-item-title">${n.title}</div>
+        <div class="news-item-meta">${n.site} · ${n.date}</div>
+      </div>`;
+    item.onclick = () => window.open(n.url, '_blank');
+    nEl.appendChild(item);
+  });
+
+  document.getElementById('load-more-btn').style.display = displayedNews.length > PAGE_SIZE + 1 ? 'inline-block' : 'none';
+}
+
+function loadMore() {
+  page++;
+  const start = page * PAGE_SIZE + 1;
+  const more = displayedNews.slice(start, start + PAGE_SIZE);
+  const nEl = document.getElementById('news-list');
+  more.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'news-item';
+    item.innerHTML = `
+      <div class="news-item-badge">${getCategoryBadge(n.tag)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="news-item-title">${n.title}</div>
+        <div class="news-item-meta">${n.site} · ${n.date}</div>
+      </div>`;
+    item.onclick = () => window.open(n.url, '_blank');
+    nEl.appendChild(item);
+  });
+  if(start + PAGE_SIZE >= displayedNews.length) document.getElementById('load-more-btn').style.display = 'none';
+}
+
+async function fetchAPOD() {
+  const el = document.getElementById('apod-content');
+  try {
+    const r = await fetch('/functions/nasa?endpoint=apod');
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    if(d.media_type === 'image') {
+      el.innerHTML = `<img class="apod-img" src="${d.url}" alt="${d.title}" onclick="window.open('${d.hdurl||d.url}','_blank')" title="Click for HD">
+        <div class="apod-title">${d.title}</div>
+        <div class="apod-desc">${(d.explanation||'').substring(0,180)}...</div>`;
+    } else {
+      el.innerHTML = `<div class="apod-title">${d.title}</div>
+        <div class="apod-desc">${(d.explanation||'').substring(0,200)}...</div>
+        <a href="${d.url}" target="_blank" style="color:var(--blue);font-size:11px;">Watch →</a>`;
+    }
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted2);">APOD unavailable. <a href="https://apod.nasa.gov" target="_blank" style="color:var(--blue);">Visit APOD →</a></div>`;
+  }
+}
+
+function renderTrending() {
+  const el = document.getElementById('trending');
+  el.innerHTML = TRENDING.map((t,i) =>
+    `<div class="trending-item" onclick="filterByKeyword('${t}')"><span class="trending-num">${String(i+1).padStart(2,'0')}</span>${t}</div>`
+  ).join('');
+}
+
+function filterByKeyword(kw) {
+  displayedNews = allNews.filter(n => n.title.toLowerCase().includes(kw.toLowerCase()));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  page = 0;
+  renderNews();
+}
+
+fetchNews();
+fetchAPOD();
+renderTrending();
+setInterval(fetchNews, 300000);
+</script>
+</body>
+</html>

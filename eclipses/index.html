@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Upcoming solar and lunar eclipses with visibility from your location and live countdowns.">
+<meta property="og:title" content="Eclipse Tracker — MissionCtrl.no">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Eclipse Tracker — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1200px;margin:0 auto;padding:20px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.next-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:24px;}
+.next-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
+.next-title{font-size:24px;font-weight:500;margin-bottom:6px;}
+.next-sub{font-size:13px;color:var(--muted2);margin-bottom:16px;}
+.cd-row{display:flex;gap:16px;margin-bottom:16px;}
+.cd-unit{text-align:center;background:var(--bg4);border-radius:8px;padding:10px 16px;min-width:70px;}
+.cd-num{font-size:24px;font-weight:500;font-family:var(--mono);color:var(--blue);}
+.cd-lbl{font-size:9px;color:var(--muted2);letter-spacing:.06em;margin-top:2px;}
+.eclipse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:28px;}
+.eclipse-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.eclipse-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.eclipse-card.solar::before{background:linear-gradient(90deg,var(--amber),var(--orange));}
+.eclipse-card.lunar::before{background:linear-gradient(90deg,var(--blue),var(--purple));}
+.eclipse-card:hover{border-color:var(--border2);background:var(--bg3);}
+.eclipse-icon{font-size:32px;margin-bottom:10px;}
+.eclipse-type{font-size:14px;font-weight:500;margin-bottom:3px;}
+.eclipse-date{font-size:12px;color:var(--muted2);margin-bottom:10px;}
+.stat-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);}
+.stat-row:last-child{border-bottom:none;}
+.stat-key{color:var(--muted2);}
+.eclipse-vis{margin-top:10px;padding:8px;background:var(--bg4);border-radius:6px;}
+.vis-lbl{font-size:10px;color:var(--muted2);margin-bottom:4px;}
+.vis-val{font-size:12px;font-weight:500;}
+.path-note{font-size:11px;color:var(--muted2);line-height:1.5;margin-top:8px;}
+.sim-wrap{margin:20px 0;text-align:center;}
+#eclipse-sim{border-radius:8px;background:#020408;display:block;margin:0 auto;}
+.fact-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted2);line-height:1.5;}
+.fact-item:last-child{border-bottom:none;}
+.fact-item strong{color:var(--text);}
+</style>
+</head>
+<body data-page="eclipses">
+<div class="page">
+  <div class="page-title">Eclipse Tracker</div>
+  <div class="page-sub">Upcoming solar and lunar eclipses — visibility from <span id="loc-name">your location</span> and live countdowns</div>
+
+  <!-- Next eclipse hero -->
+  <div class="next-card" id="next-card">
+    <div class="next-label">Next Eclipse</div>
+    <div class="next-title" id="next-title">Loading...</div>
+    <div class="next-sub" id="next-sub"></div>
+    <div class="cd-row" id="cd-row">
+      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-lbl">DAYS</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-lbl">HRS</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-lbl">MIN</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-lbl">SEC</div></div>
+    </div>
+    <div id="next-vis"></div>
+  </div>
+
+  <!-- Eclipse simulation -->
+  <div class="section-title">Eclipse Geometry Simulation</div>
+  <div class="sim-wrap">
+    <canvas id="eclipse-sim" width="600" height="120"></canvas>
+  </div>
+
+  <div class="section-title">Upcoming Solar Eclipses</div>
+  <div class="eclipse-grid" id="solar-grid"></div>
+
+  <div class="section-title">Upcoming Lunar Eclipses</div>
+  <div class="eclipse-grid" id="lunar-grid"></div>
+
+  <div class="section-title">Eclipse facts</div>
+  <div>
+    <div class="fact-item"><strong>Total solar eclipses</strong> are only possible because the Moon and Sun appear almost exactly the same size in our sky. The Moon is 400× smaller than the Sun, but also 400× closer — a cosmic coincidence unique in the solar system.</div>
+    <div class="fact-item"><strong>Saros cycle:</strong> Eclipses repeat in an 18-year, 11-day, 8-hour cycle called the Saros. Every eclipse is related to another one that occurred 18 years earlier and predicts one 18 years in the future.</div>
+    <div class="fact-item"><strong>The Moon is slowly moving away</strong> from Earth at ~3.8 cm/year. In ~600 million years, the Moon will appear too small to completely cover the Sun, and total solar eclipses will no longer be possible.</div>
+    <div class="fact-item"><strong>Blood Moons</strong> occur during total lunar eclipses because Earth's atmosphere bends and filters sunlight, casting a red glow on the Moon. The colour depends on how much dust and clouds are in Earth's atmosphere.</div>
+    <div class="fact-item"><strong>Annular eclipses</strong> occur when the Moon is near apogee (furthest from Earth) and appears smaller than the Sun, leaving a ring of sunlight — the "ring of fire" — visible around the Moon.</div>
+    <div class="fact-item"><strong>Diamond ring effect:</strong> In the last seconds before totality, a single bead of sunlight shines through a lunar valley, creating a dazzling diamond ring appearance.</div>
+  </div>
+</div>
+
+<script>
+const PAD = n => String(n).padStart(2,'0');
+let userLat = 59.9, userLon = 10.7, userName = 'Oslo';
+
+window.onLocationReady = function(loc) {
+  userLat = loc.lat; userLon = loc.lon;
+  userName = loc.name || `${loc.lat.toFixed(1)}°N`;
+  document.getElementById('loc-name').textContent = userName;
+  renderAll();
+};
+
+// Comprehensive eclipse data 2025-2035
+const SOLAR_ECLIPSES = [
+  {
+    date: new Date('2026-08-12T17:46:00Z'), type:'Total', typeClass:'b-amber',
+    duration:'2m 18s', width:'267 km', magnitude:1.0386,
+    path:'Greenland, Iceland, Spain, Morocco, Russia',
+    nordicVis: 'Partial eclipse visible across all of Scandinavia. Norway sees ~70-85% coverage.',
+    worldVis: 'Total: Greenland, Iceland, north Spain, Morocco, western Russia. Partial: Europe, N.Africa, Middle East.',
+    desc:'The first total solar eclipse visible from mainland Europe in decades. The path of totality crosses Iceland and northern Spain. Partial eclipse visible across all of Scandinavia — a major event for Norway.',
+  },
+  {
+    date: new Date('2027-08-02T10:07:00Z'), type:'Total', typeClass:'b-amber',
+    duration:'6m 23s', width:'258 km', magnitude:1.0790,
+    path:'Morocco, Algeria, Tunisia, Libya, Egypt, Saudi Arabia, Yemen, Somalia',
+    nordicVis: 'Partial eclipse, small coverage from Norway (~10%). Better from southern Europe.',
+    worldVis: 'Total: N.Africa, Middle East. One of the longest total solar eclipses of the century.',
+    desc:'One of the longest totality durations of the 21st century at 6 minutes 23 seconds. The path crosses N.Africa and the Middle East. Very popular eclipse for chasers — Egypt provides ideal desert viewing.',
+  },
+  {
+    date: new Date('2028-07-22T02:56:00Z'), type:'Total', typeClass:'b-amber',
+    duration:'5m 10s', width:'226 km', magnitude:1.0560,
+    path:'Australia, New Zealand, Antarctic',
+    nordicVis: 'Not visible from Norway.',
+    worldVis: 'Total: Australia and New Zealand. Australia\'s first total eclipse since 2002.',
+    desc:'Australia and New Zealand are in the path of totality. A landmark event for the southern hemisphere.',
+  },
+  {
+    date: new Date('2030-06-01T06:29:00Z'), type:'Annular', typeClass:'b-blue',
+    duration:'5m 21s', width:'31 km', magnitude:0.9440,
+    path:'Algeria, Tunisia, Greece, Turkey, Russia, China, Japan',
+    nordicVis: 'Partial eclipse, 30-50% coverage from Norway.',
+    worldVis: 'Annular: S.Europe, Turkey, Russia, China, Japan. Partial: all of Europe.',
+    desc:'Ring of fire eclipse crossing southern Europe and Asia. Greece and Turkey see the full annular phase. Norway gets a decent partial eclipse.',
+  },
+  {
+    date: new Date('2033-03-30T18:02:00Z'), type:'Total', typeClass:'b-amber',
+    duration:'2m 37s', width:'149 km', magnitude:1.0297,
+    path:'Russia, Alaska',
+    nordicVis: 'Very small partial eclipse from northernmost Norway.',
+    worldVis: 'Total: Siberia and Alaska. Not well positioned for viewing outside Russia.',
+    desc:'Primarily a Russian and Alaskan event. Very limited visibility elsewhere.',
+  },
+];
+
+const LUNAR_ECLIPSES = [
+  {
+    date: new Date('2025-09-07T18:11:00Z'), type:'Total (Blood Moon)', typeClass:'b-red',
+    duration:'3h 28m total, 1h 22m totality', magnitude:1.362,
+    path:'Europe, Africa, Asia, Australia',
+    nordicVis: 'Fully visible from Norway. Moon rises already partially eclipsed. Totality visible.',
+    worldVis: 'Visible: Europe, Africa, Asia, Australia. Best from central/eastern hemisphere.',
+    desc:"A deep total lunar eclipse with maximum magnitude of 1.362 — the Moon will turn a vivid blood-red. Fully visible from Norway. This is one of the better lunar eclipses of the decade for European observers.",
+  },
+  {
+    date: new Date('2026-03-03T10:33:00Z'), type:'Total (Blood Moon)', typeClass:'b-red',
+    duration:'3h 27m total, 1h 13m totality', magnitude:1.151,
+    path:'Americas, Europe, Africa',
+    nordicVis: 'Partial phases visible from Norway. Totality occurs during daylight hours — not visible.',
+    worldVis: 'Best: Americas and western Africa. Europe sees partial phases only.',
+    desc:'A total lunar eclipse best positioned for the Americas. Norway can observe partial phases before the Moon sets.',
+  },
+  {
+    date: new Date('2028-12-31T16:52:00Z'), type:'Total (Blood Moon)', typeClass:'b-red',
+    duration:'3h 30m total, 1h 11m totality', magnitude:1.245,
+    path:'Europe, Africa, Asia, Americas',
+    nordicVis: 'Excellent visibility from Norway. Moon high in the sky during totality — New Year\'s Eve Blood Moon.',
+    worldVis: 'Widely visible. One of the most accessible total lunar eclipses of the decade.',
+    desc:"A total lunar eclipse on New Year's Eve 2028 — midnight Blood Moon. Excellent visibility from Norway with the Moon well-placed in the sky. A once-in-a-decade event timing.",
+  },
+  {
+    date: new Date('2029-06-26T03:22:00Z'), type:'Total (Blood Moon)', typeClass:'b-red',
+    duration:'3h 40m total, 1h 41m totality', magnitude:1.844,
+    path:'Americas, Europe, Africa, Middle East',
+    nordicVis: 'Visible from Norway in the early morning hours.',
+    worldVis: 'Very long totality at 1h 41m. Widely visible across two hemispheres.',
+    desc:'The deepest total lunar eclipse until 2040, with maximum magnitude 1.844. Very long totality of 1 hour 41 minutes.',
+  },
+];
+
+let nextEclipse = null;
+let cdInterval = null;
+
+function getVisForLocation(eclipse) {
+  // Simplified visibility check based on stored region notes
+  return eclipse.nordicVis || 'Check visibility maps for your region.';
+}
+
+function renderNextEclipse() {
+  const now = Date.now();
+  const allEclipses = [...SOLAR_ECLIPSES, ...LUNAR_ECLIPSES].sort((a,b)=>a.date-b.date);
+  nextEclipse = allEclipses.find(e => e.date > now) || allEclipses[allEclipses.length-1];
+  if(!nextEclipse) return;
+
+  const isSolar = SOLAR_ECLIPSES.includes(nextEclipse);
+  document.getElementById('next-title').textContent = nextEclipse.type + ' Eclipse';
+  document.getElementById('next-sub').textContent = nextEclipse.date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' · ' + (isSolar?'Solar':'Lunar');
+  document.getElementById('next-vis').innerHTML = `<div style="padding:10px;background:var(--bg4);border-radius:6px;font-size:12px;color:var(--muted2);"><strong style="color:var(--text);">From ${userName}:</strong> ${getVisForLocation(nextEclipse)}</div>`;
+
+  if(cdInterval) clearInterval(cdInterval);
+  function tick() {
+    const diff = nextEclipse.date - Date.now();
+    if(diff <= 0) { clearInterval(cdInterval); return; }
+    document.getElementById('cd-d').textContent = PAD(Math.floor(diff/86400000));
+    document.getElementById('cd-h').textContent = PAD(Math.floor((diff%86400000)/3600000));
+    document.getElementById('cd-m').textContent = PAD(Math.floor((diff%3600000)/60000));
+    document.getElementById('cd-s').textContent = PAD(Math.floor((diff%60000)/1000));
+  }
+  cdInterval = setInterval(tick, 1000); tick();
+
+  // Draw simulation
+  drawEclipseSim(isSolar);
+}
+
+function drawEclipseSim(isSolar) {
+  const canvas = document.getElementById('eclipse-sim');
+  const ctx = canvas.getContext('2d');
+  const W = 600, H = 120;
+  ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, W, H);
+
+  if(isSolar) {
+    // Sun
+    const sunGrd = ctx.createRadialGradient(150, 60, 0, 150, 60, 50);
+    sunGrd.addColorStop(0, '#fff5a0'); sunGrd.addColorStop(0.4, '#f0a500'); sunGrd.addColorStop(1, 'rgba(240,165,0,0)');
+    ctx.fillStyle = sunGrd; ctx.beginPath(); ctx.arc(150, 60, 50, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ffe880'; ctx.beginPath(); ctx.arc(150, 60, 38, 0, Math.PI*2); ctx.fill();
+
+    // Earth
+    const earthGrd = ctx.createRadialGradient(450, 60, 0, 450, 60, 35);
+    earthGrd.addColorStop(0, '#4a9eff'); earthGrd.addColorStop(1, '#0a2a6e');
+    ctx.fillStyle = earthGrd; ctx.beginPath(); ctx.arc(450, 60, 35, 0, Math.PI*2); ctx.fill();
+
+    // Moon in front of sun (total eclipse)
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(150, 60, 37, 0, Math.PI*2); ctx.fill();
+
+    // Corona effect
+    const coroGrd = ctx.createRadialGradient(150, 60, 37, 150, 60, 65);
+    coroGrd.addColorStop(0, 'rgba(255,240,180,0.6)'); coroGrd.addColorStop(1, 'rgba(255,200,100,0)');
+    ctx.fillStyle = coroGrd; ctx.beginPath(); ctx.arc(150, 60, 65, 0, Math.PI*2); ctx.fill();
+
+    // Shadow path
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.moveTo(187, 30); ctx.lineTo(415, 42); ctx.lineTo(415, 78); ctx.lineTo(187, 90); ctx.closePath(); ctx.fill();
+
+    // Labels
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('Sun', 150, 115); ctx.fillText('Moon (in front)', 150, 15); ctx.fillText('Earth', 450, 105);
+    ctx.fillText('← Path of totality shadow →', 300, 60);
+  } else {
+    // Lunar eclipse
+    // Sun (off-screen left)
+    ctx.fillStyle = '#ffe880'; ctx.font = '11px monospace'; ctx.textAlign = 'left';
+    ctx.fillText('☀ Sun (off screen)', 10, 20);
+
+    // Earth shadow
+    const shadowGrd = ctx.createRadialGradient(250, 60, 0, 250, 60, 100);
+    shadowGrd.addColorStop(0, 'rgba(0,0,0,0.95)'); shadowGrd.addColorStop(0.5, 'rgba(50,0,0,0.7)'); shadowGrd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = shadowGrd; ctx.beginPath(); ctx.arc(250, 60, 100, 0, Math.PI*2); ctx.fill();
+
+    // Earth
+    const earthGrd = ctx.createRadialGradient(250, 60, 0, 250, 60, 40);
+    earthGrd.addColorStop(0, '#4a9eff'); earthGrd.addColorStop(1, '#0a2a6e');
+    ctx.fillStyle = earthGrd; ctx.beginPath(); ctx.arc(250, 60, 40, 0, Math.PI*2); ctx.fill();
+
+    // Moon in umbra (blood red)
+    const moonGrd = ctx.createRadialGradient(430, 60, 0, 430, 60, 22);
+    moonGrd.addColorStop(0, '#cc4400'); moonGrd.addColorStop(1, '#660000');
+    ctx.fillStyle = moonGrd; ctx.beginPath(); ctx.arc(430, 60, 22, 0, Math.PI*2); ctx.fill();
+
+    // Labels
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('Earth + shadow', 250, 115); ctx.fillText('Moon (blood red)', 430, 100);
+
+    // Arrows
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(500, 60); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.textAlign = 'left'; ctx.font = '9px monospace';
+    ctx.fillText('← Sunlight direction', 10, 57);
+  }
+}
+
+function makeEclipseCard(e, isSolar) {
+  const card = document.createElement('div');
+  card.className = 'eclipse-card ' + (isSolar ? 'solar' : 'lunar');
+  const now = Date.now();
+  const isPast = e.date < now;
+  const diff = e.date - now;
+  const days = Math.floor(diff/86400000);
+  const timeStr = isPast ? 'Past' : days < 1 ? 'Today!' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+
+  card.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-size:20px;margin-bottom:4px;">${isSolar?'☀️':'🌕'}</div>
+        <div class="eclipse-type">${e.type}</div>
+        <div class="eclipse-date">${e.date.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="badge ${e.typeClass}">${e.type.split(' ')[0]}</span>
+        <span class="badge ${isPast?'b-purple':days<30?'b-green':'b-blue'}">${timeStr}</span>
+      </div>
+    </div>
+    <div class="stat-row"><span class="stat-key">Duration</span><span class="mono">${e.duration}</span></div>
+    <div class="stat-row"><span class="stat-key">Magnitude</span><span class="mono">${e.magnitude?.toFixed(3)||'—'}</span></div>
+    <div class="stat-row"><span class="stat-key">Path</span><span style="font-size:10px;text-align:right;max-width:160px;">${e.path}</span></div>
+    <div class="eclipse-vis">
+      <div class="vis-lbl">From ${userName}:</div>
+      <div class="vis-val" style="color:${e.nordicVis?.includes('Fully visible')||e.nordicVis?.includes('Excellent')?'var(--green)':e.nordicVis?.includes('Not visible')?'var(--red)':'var(--amber)'};">${e.nordicVis}</div>
+    </div>
+    <div class="path-note">${e.desc}</div>`;
+  return card;
+}
+
+function renderAll() {
+  renderNextEclipse();
+
+  const sg = document.getElementById('solar-grid');
+  sg.innerHTML = '';
+  SOLAR_ECLIPSES.forEach(e => sg.appendChild(makeEclipseCard(e, true)));
+
+  const lg = document.getElementById('lunar-grid');
+  lg.innerHTML = '';
+  LUNAR_ECLIPSES.forEach(e => lg.appendChild(makeEclipseCard(e, false)));
+}
+
+renderAll();
+</script>
+</body>
+</html>

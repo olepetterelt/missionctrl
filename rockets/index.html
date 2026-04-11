@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Rocket database with specs, payload comparisons and flight history. Falcon 9, SLS, Starship and more.">
+<meta name="theme-color" content="#0b0d12">
+<meta property="og:title" content="Rockets — MissionCtrl.no">
+<meta property="og:description" content="Rocket database with specs, payload comparisons and flight history. Falcon 9, SLS, Starship and more.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://missionctrl.no/rockets/">
+<meta property="og:site_name" content="MissionCtrl.no">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Rockets — MissionCtrl.no">
+<meta name="twitter:description" content="Rocket database with specs, payload comparisons and flight history. Falcon 9, SLS, Starship and more.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Rockets — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(74,158,255,.1);color:var(--blue);border-color:rgba(74,158,255,.3);}
+.rocket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:28px;}
+.rocket-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;position:relative;}
+.rocket-card:hover{border-color:var(--border2);background:var(--bg3);}
+.rocket-name{font-size:15px;font-weight:500;margin-bottom:2px;}
+.rocket-operator{font-size:11px;color:var(--muted2);margin-bottom:12px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.st{background:var(--bg4);border-radius:6px;padding:7px 9px;}
+.sl{font-size:10px;color:var(--muted2);margin-bottom:2px;}
+.sv{font-size:12px;font-weight:500;font-family:var(--mono);}
+.rocket-desc{font-size:12px;color:var(--muted2);line-height:1.6;}
+.height-viz{position:relative;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.height-fill{height:100%;border-radius:3px;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:660px;width:100%;max-height:85vh;overflow-y:auto;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.compare-bar-wrap{margin-bottom:20px;}
+.compare-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.compare-bar-label{font-size:11px;color:var(--muted2);min-width:130px;text-align:right;}
+.compare-bar{height:16px;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:500;white-space:nowrap;}
+
+@media(max-width:700px){
+  .layout,.grid2,.grid3{grid-template-columns:1fr!important;}
+  .mission-grid,.planet-grid,.comet-grid,.astro-grid,.sat-grid,.rocket-grid,.agency-grid{grid-template-columns:1fr!important;}
+  .detail-grid,.modal-grid,.sg{grid-template-columns:1fr 1fr!important;}
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+  .modal{padding:16px!important;}
+  .next-launch{grid-template-columns:1fr!important;}
+  .countdown{text-align:left!important;}
+  .cd-units{justify-content:flex-start!important;}
+  .compare-table{font-size:10px!important;}
+  .compare-table th,.compare-table td{padding:5px!important;}
+}
+</style>
+</head>
+<body data-page="rockets">
+<div class="page">
+  <div class="page-title">Rocket Database</div>
+  <div class="page-sub">Active and historic launch vehicles — specs, comparison and flight history</div>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filter('all',this)">All</button>
+    <button class="filter-btn" onclick="filter('active',this)">Active</button>
+    <button class="filter-btn" onclick="filter('development',this)">In Development</button>
+    <button class="filter-btn" onclick="filter('retired',this)">Retired</button>
+    <button class="filter-btn" onclick="filter('spacex',this)">SpaceX</button>
+    <button class="filter-btn" onclick="filter('nasa',this)">NASA</button>
+    <button class="filter-btn" onclick="filter('esa',this)">ESA</button>
+  </div>
+
+  <div class="section-title">LEO Payload Comparison</div>
+  <div class="compare-bar-wrap" id="compare-bars"></div>
+
+  <div class="section-title">All Rockets</div>
+  <div class="rocket-grid" id="rocket-grid"></div>
+</div>
+
+<div class="modal-backdrop" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button onclick="closeModal()" style="float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:20px;">✕</button>
+    <div style="font-size:18px;font-weight:500;margin-bottom:3px;" id="m-name"></div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;" id="m-operator"></div>
+    <div id="m-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;" id="m-stats"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Overview</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.7;" id="m-desc"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Key features</div>
+    <div id="m-features"></div>
+  </div>
+</div>
+
+<script>
+const ROCKETS=[
+  {name:'Starship',operator:'SpaceX',tag:'spacex',status:'development',color:'var(--amber)',sc:'b-amber',
+   height:'121 m',leo:'150,000 kg',gto:'21,000+ kg',thrust:'74,360 kN',stages:2,reusable:true,firstFlight:'2023 (test)',flights:'Test flights',
+   desc:'The largest and most powerful rocket ever built. Fully reusable two-stage vehicle — Super Heavy booster and Starship upper stage. Designed for Mars missions, lunar landings (Artemis HLS) and point-to-point Earth travel. Still in test flight phase with several high-altitude flights.',
+   features:['Full stack reusability — both booster and ship','150,000 kg LEO payload (expendable)','Designed for human Mars missions','Selected as NASA Artemis lunar lander (HLS)','Methane/LOX propellant — producible on Mars','Ambitious mechazilla catch system for booster']},
+  {name:'Falcon 9',operator:'SpaceX',tag:'spacex',status:'active',color:'var(--blue)',sc:'b-blue',
+   height:'70 m',leo:'22,800 kg',gto:'8,300 kg',thrust:'7,607 kN',stages:2,reusable:true,firstFlight:'2010',flights:'350+',
+   desc:'The world\'s most frequently flown orbital rocket. Partially reusable — the first stage booster lands propulsively and is reflown. Some boosters have flown 20+ times. Cornerstone of SpaceX commercial dominance and NASA crew/cargo operations.',
+   features:['Partially reusable — first stage lands and relaunches','Single booster flown 20+ times','Merlin 1D engine cluster (9 engines)','Used for ISS crew and cargo missions','Starlink constellation launches','Competitive $/kg to orbit']},
+  {name:'Falcon Heavy',operator:'SpaceX',tag:'spacex',status:'active',color:'var(--blue)',sc:'b-blue',
+   height:'70 m',leo:'63,800 kg',gto:'26,700 kg',thrust:'22,819 kN',stages:2,reusable:true,firstFlight:'2018',flights:'12+',
+   desc:'Three Falcon 9 cores strapped together. Second most powerful operational rocket after SLS. All three cores potentially reusable. Launched Europa Clipper, JWST secondary payloads, and DoD missions.',
+   features:['Triple-core configuration','Most powerful operational rocket (until SLS)','Side boosters land and reuse','Centre core landing attempted (lower success rate)','Launched Europa Clipper','Used for DoD heavy payloads']},
+  {name:'SLS Block 1',operator:'NASA',tag:'nasa',status:'active',color:'var(--orange)',sc:'b-amber',
+   height:'98 m',leo:'95,000 kg',gto:'N/A',thrust:'39,144 kN',stages:2,reusable:false,firstFlight:'2022',flights:'2',
+   desc:'NASA\'s Space Launch System — the most powerful rocket ever flown. Expendable. Uses heritage Space Shuttle main engines (RS-25) and solid rocket boosters. $4 billion per launch. Designed for Artemis crewed lunar missions. Critics note extreme cost; supporters cite unique capability for sending crew directly to the Moon.',
+   features:['Most powerful rocket ever flown (95t LEO)','Uses 4 heritage Space Shuttle RS-25 engines','Solid rocket boosters from Shuttle era','Designed specifically for crewed lunar missions','Expendable — no recovery','$4B+ cost per launch']},
+  {name:'New Glenn',operator:'Blue Origin',tag:'spacex',status:'active',color:'var(--blue)',sc:'b-blue',
+   height:'98 m',leo:'45,000 kg',gto:'13,600 kg',thrust:'17,100 kN',stages:2,reusable:true,firstFlight:'2025',flights:'2+',
+   desc:'Blue Origin\'s first orbital rocket. Reusable first stage. Methane/LOX propellant. Competing with Falcon 9 for commercial launch contracts. BE-4 engine also used in ULA\'s Vulcan rocket. Selected for some NASA commercial cargo missions.',
+   features:['Reusable first stage','7-metre payload fairing — industry largest','BE-4 methane engine (also used in Vulcan)','Competing for commercial GEO market','Blue Moon lunar lander launched by New Glenn variant','Long-duration cryogenic upper stage']},
+  {name:'Ariane 6',operator:'ESA / Arianespace',tag:'esa',status:'active',color:'var(--teal)',sc:'b-teal',
+   height:'62 m',leo:'21,650 kg',gto:'11,500 kg',thrust:'13,350 kN',stages:2,reusable:false,firstFlight:'2024',flights:'3+',
+   desc:'Europe\'s new flagship launcher, replacing Ariane 5. Two configurations: A62 (twin solid boosters) and A64 (quad). Designed to provide European autonomous access to space. Competes with Falcon 9 for commercial GEO deployments.',
+   features:['Two configurations: A62 and A64','Vinci engine enables multi-ignition in vacuum','Designed for reusable-era commercial competition','Provides European launch independence','Replaced Ariane 5 after 40+ year legacy','Avio-produced P120C boosters']},
+  {name:'Long March 5',operator:'CNSA',tag:'nasa',status:'active',color:'var(--red)',sc:'b-red',
+   height:'57 m',leo:'25,000 kg',gto:'14,000 kg',thrust:'10,560 kN',stages:2,reusable:false,firstFlight:'2016',flights:'8+',
+   desc:"China's heaviest operational rocket. Workhorse for China's most ambitious missions: Tianwen-1 to Mars, Chang'e lunar missions, Tianhe space station core module. Uses liquid hydrogen/oxygen upper stage for high efficiency.",
+   features:["Used for China's most ambitious missions","Launched Tianwen-1 Mars orbiter/rover","Launched Tianhe — Tiangong core module","Will launch Chang'e-7 lunar mission","No planned reusability","Hydrogen/oxygen upper stage for efficiency"]},
+  {name:'Soyuz',operator:'Roscosmos',tag:'nasa',status:'active',color:'var(--red)',sc:'b-red',
+   height:'46 m',leo:'7,080 kg',gto:'N/A',thrust:'4,144 kN',stages:3,reusable:false,firstFlight:'1966',flights:'1,900+',
+   desc:'The most flown rocket in history with 1,900+ launches since 1966. Crewed variant delivers cosmonauts to ISS. Exceptionally reliable — one of the best safety records in spaceflight history. Currently sole Russian crewed launch vehicle.',
+   features:['Most flown rocket in history: 1,900+ launches','Crewed Soyuz MS delivers ISS crew','Operating since 1966 — 58+ years','Exceptionally reliable crewed launch record','Three-stage design with strap-on boosters','Parachute/retrorocket soft landing for crew capsule']},
+  {name:'Saturn V',operator:'NASA',tag:'nasa',status:'retired',color:'var(--muted2)',sc:'b-purple',
+   height:'111 m',leo:'130,000 kg',gto:'48,600 kg',thrust:'35,100 kN',stages:3,reusable:false,firstFlight:'1967',flights:'13',
+   desc:'The rocket that took humans to the Moon. Still the tallest, heaviest, and most powerful rocket ever brought to operational status. 13 flights with a perfect operational record — zero crew losses. Retired 1973. Exceeded in thrust only by the SLS.',
+   features:['Tallest rocket ever operated: 111 m','Took all Apollo Moon missions','13 flights with zero mission failures','F-1 engine — most powerful single-combustion-chamber engine ever built','Five F-1 engines on first stage alone','Retired 1973 — would not be exceeded in scale for 50 years']},
+];
+
+let displayed=[...ROCKETS];
+
+function filter(tag,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tag==='all')displayed=[...ROCKETS];
+  else if(['spacex','nasa','esa'].includes(tag))displayed=ROCKETS.filter(r=>r.tag===tag||r.operator.toLowerCase().includes(tag));
+  else displayed=ROCKETS.filter(r=>r.status===tag);
+  renderRockets();
+}
+
+function renderCompareBars(){
+  const el=document.getElementById('compare-bars');
+  const active=ROCKETS.filter(r=>r.status!=='retired').sort((a,b)=>parseInt(b.leo.replace(/,/g,''))-parseInt(a.leo.replace(/,/g,'')));
+  const max=150000;
+  el.innerHTML=active.map(r=>{
+    const kg=parseInt(r.leo.replace(/,/g,''));
+    const pct=Math.max(2,(kg/max)*100);
+    return`<div class="compare-bar-row">
+      <span class="compare-bar-label">${r.name}</span>
+      <div class="compare-bar" style="width:${pct}%;background:${r.color}33;border:1px solid ${r.color}55;color:${r.color};">${r.leo}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRockets(){
+  const g=document.getElementById('rocket-grid');g.innerHTML='';
+  displayed.forEach(r=>{
+    const card=document.createElement('div');card.className='rocket-card';
+    const maxH=121,hPct=Math.max(5,(parseInt(r.height)/maxH)*100);
+    card.innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+      <div><div class="rocket-name">${r.name}</div><div class="rocket-operator">${r.operator}</div></div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+        <span class="badge ${r.sc}">${r.status}</span>
+        ${r.reusable?'<span class="badge b-green">Reusable</span>':'<span class="badge b-red">Expendable</span>'}
+      </div>
+    </div>
+    <div class="height-viz"><div class="height-fill" style="width:${hPct}%;background:${r.color};"></div></div>
+    <div style="font-size:10px;color:var(--muted2);margin-bottom:10px;">Height: ${r.height}</div>
+    <div class="sg">
+      <div class="st"><div class="sl">LEO payload</div><div class="sv">${r.leo}</div></div>
+      <div class="st"><div class="sl">Thrust</div><div class="sv">${r.thrust}</div></div>
+      <div class="st"><div class="sl">Flights</div><div class="sv">${r.flights}</div></div>
+      <div class="st"><div class="sl">First flight</div><div class="sv">${r.firstFlight}</div></div>
+    </div>
+    <div class="rocket-desc">${r.desc.substring(0,120)}...</div>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end;"><span style="font-size:11px;color:${r.color};">Full specs →</span></div>`;
+    card.onclick=()=>openRocket(r);
+    g.appendChild(card);
+  });
+}
+
+function openRocket(r){
+  document.getElementById('m-name').textContent=r.name;
+  document.getElementById('m-operator').textContent=r.operator;
+  document.getElementById('m-badges').innerHTML=`<span class="badge ${r.sc}">${r.status}</span>${r.reusable?'<span class="badge b-green">Reusable</span>':'<span class="badge b-red">Expendable</span>'}<span class="badge b-blue">${r.flights} flights</span>`;
+  document.getElementById('m-stats').innerHTML=[['Height',r.height],['LEO payload',r.leo],['GTO payload',r.gto],['Thrust',r.thrust],['Stages',r.stages],['First flight',r.firstFlight]].map(s=>`<div class="st"><div class="sl">${s[0]}</div><div class="sv">${s[1]}</div></div>`).join('');
+  document.getElementById('m-desc').textContent=r.desc;
+  document.getElementById('m-features').innerHTML=r.features.map(f=>`<div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--muted2);"><span style="color:${r.color};flex-shrink:0;">›</span><span>${f}</span></div>`).join('');
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+renderCompareBars();
+renderRockets();
+</script>
+</body>
+</html>

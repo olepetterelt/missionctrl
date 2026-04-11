@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SpaceX Starship development tracker — flight history, milestones, hardware status and what's next.">
+<meta property="og:title" content="Starship Tracker — MissionCtrl.no">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Starship — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;
+  --blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;
+  --purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.page{max-width:1400px;margin:0 auto;padding:20px 16px;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;}
+.b-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(46,212,122,.1);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.b-amber{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.b-red{background:rgba(232,64,64,.1);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.b-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-teal{background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:16px;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;}
+.card-hd{display:flex;align-items:center;gap:7px;margin-bottom:12px;}
+.card-title{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.flight-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.flight-card:hover{border-color:var(--border2);background:var(--bg3);}
+.flight-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.flight-num{font-size:15px;font-weight:500;}
+.flight-date{font-size:11px;color:var(--muted2);}
+.flight-result{font-size:13px;font-weight:500;margin-bottom:6px;}
+.milestone-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.milestone{padding:2px 7px;border-radius:4px;font-size:10px;}
+.m-pass{background:rgba(46,212,122,.12);color:var(--green);border:1px solid rgba(46,212,122,.2);}
+.m-fail{background:rgba(232,64,64,.12);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.m-partial{background:rgba(240,165,0,.12);color:var(--amber);border:1px solid rgba(240,165,0,.2);}
+.progress-section{margin-bottom:20px;}
+.prog-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.prog-item:last-child{border-bottom:none;}
+.prog-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.prog-label{flex:1;font-size:12px;}
+.prog-status{font-size:11px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+.stat-row:last-child{border-bottom:none;}
+.spec-table{width:100%;border-collapse:collapse;}
+.spec-table td{padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.spec-table td:first-child{color:var(--muted2);}
+.spec-table td:last-child{font-family:var(--mono);text-align:right;}
+.spec-table tr:last-child td{border-bottom:none;}
+.timeline-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.timeline-item:last-child{border-bottom:none;}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-date{font-size:10px;color:var(--muted2);font-family:var(--mono);margin-bottom:2px;}
+.tl-title{font-size:12px;font-weight:500;margin-bottom:2px;}
+.tl-desc{font-size:11px;color:var(--muted2);line-height:1.5;}
+</style>
+</head>
+<body data-page="starship">
+<div class="page">
+  <div class="page-title">SpaceX Starship</div>
+  <div class="page-sub">Development tracker — flight history, milestones, hardware and what's next</div>
+
+  <div class="layout">
+    <div>
+      <!-- Flight history -->
+      <div class="section-title">Integrated Flight Tests</div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 1 — IFT-1</div><div class="flight-date">Apr 20, 2023 · Boca Chica, TX</div></div>
+          <span class="badge b-amber">Partial success</span>
+        </div>
+        <div class="flight-result">First integrated launch attempt</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Both stages ignited and the vehicle cleared the pad. Multiple Raptor engines failed during ascent. Vehicle began tumbling ~4 min after launch. Flight termination system activated. Pad infrastructure severely damaged (no flame deflector).</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Ignition</span>
+          <span class="milestone m-pass">Liftoff</span>
+          <span class="milestone m-fail">Max-Q survival</span>
+          <span class="milestone m-fail">Stage separation</span>
+          <span class="milestone m-fail">Controlled flight</span>
+          <span class="milestone m-fail">Landing burn</span>
+        </div>
+      </div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 2 — IFT-2</div><div class="flight-date">Nov 18, 2023 · Boca Chica, TX</div></div>
+          <span class="badge b-amber">Partial success</span>
+        </div>
+        <div class="flight-result">Stage separation achieved for first time</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Hot staging separation worked — a major milestone. Super Heavy executed a flip and boostback burn before FTS was triggered. Ship reached space (~148 km) before losing control during entry. Both vehicles lost.</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Liftoff</span>
+          <span class="milestone m-pass">Max-Q survival</span>
+          <span class="milestone m-pass">Stage separation (hot staging)</span>
+          <span class="milestone m-pass">Ship reaches space</span>
+          <span class="milestone m-fail">Booster controlled return</span>
+          <span class="milestone m-fail">Ship reentry</span>
+        </div>
+      </div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 3 — IFT-3</div><div class="flight-date">Mar 14, 2024 · Boca Chica, TX</div></div>
+          <span class="badge b-amber">Partial success</span>
+        </div>
+        <div class="flight-result">Payload door open/close · Propellant transfer demo</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Longest flight to date. Ship completed most of its planned trajectory around Earth. Payload bay door opened and closed in space. In-space propellant transfer demonstrated. Both vehicles lost during return phases — ship lost contact during reentry.</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Full trajectory flight</span>
+          <span class="milestone m-pass">Payload door operation</span>
+          <span class="milestone m-pass">Propellant transfer</span>
+          <span class="milestone m-pass">Booster flip maneuver</span>
+          <span class="milestone m-fail">Booster soft splashdown</span>
+          <span class="milestone m-fail">Ship controlled reentry</span>
+        </div>
+      </div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 4 — IFT-4</div><div class="flight-date">Jun 6, 2024 · Boca Chica, TX</div></div>
+          <span class="badge b-green">Major success</span>
+        </div>
+        <div class="flight-result">Booster splashdown ✓ · Ship controlled reentry ✓</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Breakthrough flight. Super Heavy booster successfully executed a controlled splashdown in the Gulf of Mexico. Ship survived reentry with significant tile damage and completed a controlled splashdown in the Indian Ocean. Both vehicles survived.</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Booster controlled splashdown</span>
+          <span class="milestone m-pass">Ship reentry survival</span>
+          <span class="milestone m-pass">Ship splashdown</span>
+          <span class="milestone m-pass">Tile performance data</span>
+        </div>
+      </div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 5 — IFT-5</div><div class="flight-date">Oct 13, 2024 · Boca Chica, TX</div></div>
+          <span class="badge b-green">Historic success</span>
+        </div>
+        <div class="flight-result">Booster caught by mechazilla arms ✓ · Ship splashdown ✓</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">One of the most impressive rocket maneuvers in history. Super Heavy returned to the launch site and was caught by the Mechazilla tower arms — the first time a booster of this size was caught mid-air. Ship completed another successful splashdown.</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Booster catch (world first)</span>
+          <span class="milestone m-pass">Precision tower return</span>
+          <span class="milestone m-pass">Ship reentry + splashdown</span>
+          <span class="milestone m-pass">Rapid reusability demonstration</span>
+        </div>
+      </div>
+
+      <div class="flight-card">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 6 — IFT-6</div><div class="flight-date">Nov 19, 2024 · Boca Chica, TX</div></div>
+          <span class="badge b-green">Success</span>
+        </div>
+        <div class="flight-result">Second booster catch ✓ · Ship catch attempt (splashdown)</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Second successful booster catch. Ship catch was attempted but the catch was not executed due to conditions — ship performed a controlled splashdown. Further propulsion and tile improvements demonstrated.</div>
+        <div class="milestone-list">
+          <span class="milestone m-pass">Second booster catch</span>
+          <span class="milestone m-pass">Ship reentry precision</span>
+          <span class="milestone m-partial">Ship catch (splashdown instead)</span>
+        </div>
+      </div>
+
+      <div class="flight-card" style="border-color:rgba(74,158,255,0.3);">
+        <div class="flight-header">
+          <div><div class="flight-num">Flight 7+ — Upcoming</div><div class="flight-date">2025–2026 · Multiple planned</div></div>
+          <span class="badge b-blue">Planned</span>
+        </div>
+        <div class="flight-result">Ship catch · Orbital refueling · Payload deployment</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Next milestones include catching the ship with mechazilla, demonstrating orbital refueling (critical for Artemis HLS and Mars missions), and eventually deploying a Starlink payload. Each flight iterates rapidly on lessons learned.</div>
+        <div class="milestone-list">
+          <span class="milestone m-partial">Ship catch (planned)</span>
+          <span class="milestone m-partial">Orbital refueling (planned)</span>
+          <span class="milestone m-partial">Payload deployment (planned)</span>
+          <span class="milestone m-partial">Artemis HLS certification (planned ~2027)</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <!-- Program progress -->
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Program Progress</span></div>
+        <div class="progress-section">
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(46,212,122,.15);color:var(--green);">✓</div>
+            <div class="prog-label">Successful liftoff</div>
+            <span class="badge b-green">Done</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(46,212,122,.15);color:var(--green);">✓</div>
+            <div class="prog-label">Stage separation</div>
+            <span class="badge b-green">Done</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(46,212,122,.15);color:var(--green);">✓</div>
+            <div class="prog-label">Booster splashdown</div>
+            <span class="badge b-green">Done</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(46,212,122,.15);color:var(--green);">✓</div>
+            <div class="prog-label">Ship reentry + survival</div>
+            <span class="badge b-green">Done</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(46,212,122,.15);color:var(--green);">✓</div>
+            <div class="prog-label">Booster catch (mechazilla)</div>
+            <span class="badge b-green">Done</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(240,165,0,.15);color:var(--amber);">◑</div>
+            <div class="prog-label">Ship catch (mechazilla)</div>
+            <span class="badge b-amber">In progress</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(74,158,255,.15);color:var(--blue);">○</div>
+            <div class="prog-label">Orbital refueling</div>
+            <span class="badge b-blue">Planned</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(74,158,255,.15);color:var(--blue);">○</div>
+            <div class="prog-label">Payload deployment</div>
+            <span class="badge b-blue">Planned</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(74,158,255,.15);color:var(--blue);">○</div>
+            <div class="prog-label">Full rapid reusability</div>
+            <span class="badge b-blue">Planned</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(74,158,255,.15);color:var(--blue);">○</div>
+            <div class="prog-label">Artemis HLS certification</div>
+            <span class="badge b-blue">~2027</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(139,92,246,.15);color:var(--purple);">○</div>
+            <div class="prog-label">Crewed flight</div>
+            <span class="badge b-purple">~2026+</span>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon" style="background:rgba(232,64,64,.15);color:var(--red);">○</div>
+            <div class="prog-label">Crewed Mars mission</div>
+            <span class="badge b-red">~2030s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Specs -->
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Vehicle Specs</span></div>
+        <table class="spec-table">
+          <tr><td>Total height</td><td>121 m</td></tr>
+          <tr><td>Super Heavy height</td><td>71 m</td></tr>
+          <tr><td>Ship height</td><td>50 m</td></tr>
+          <tr><td>Diameter</td><td>9 m</td></tr>
+          <tr><td>Total liftoff thrust</td><td>74,360 kN</td></tr>
+          <tr><td>Super Heavy engines</td><td>33× Raptor 2/3</td></tr>
+          <tr><td>Ship engines</td><td>6× Raptor (3 vac + 3 SL)</td></tr>
+          <tr><td>LEO payload (expend.)</td><td>~150,000 kg</td></tr>
+          <tr><td>LEO payload (reusable)</td><td>~100,000 kg</td></tr>
+          <tr><td>Propellant</td><td>Methane/LOX</td></tr>
+          <tr><td>Propellant mass</td><td>~4,600 t</td></tr>
+        </table>
+      </div>
+
+      <!-- Why it matters -->
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Why Starship matters</span></div>
+        <div style="font-size:12px;color:var(--muted2);line-height:1.7;">
+          Starship is designed to be <strong style="color:var(--text);">fully and rapidly reusable</strong> — both the booster and the ship. If achieved, it would reduce the cost of getting to orbit by 10-100× compared to current rockets.
+          <br><br>
+          It is NASA's only selected lunar lander for Artemis (HLS) and is SpaceX's intended vehicle for crewed Mars missions. The ability to refuel in orbit (enabled by orbital propellant transfer) allows it to carry much heavier payloads beyond Earth orbit than any rocket in history.
+          <br><br>
+          Elon Musk has stated a target cost of <strong style="color:var(--text);">under $10M per launch</strong> at scale — compared to ~$4B for SLS and ~$70M for Falcon 9.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
