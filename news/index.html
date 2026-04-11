@@ -268,7 +268,7 @@ function loadMore() {
 async function fetchAPOD() {
   const el = document.getElementById('apod-content');
   try {
-    const r = await fetch('/functions/nasa?endpoint=apod');
+    const r = await fetch('/nasa?endpoint=apod');
     if(!r.ok) throw new Error();
     const d = await r.json();
     if(d.media_type === 'image') {
