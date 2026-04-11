@@ -146,10 +146,12 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
 <script>
 const MISSIONS = [
   {
-    id:'artemis2', title:'Artemis II', agency:'NASA', icon:'🚀', color:'var(--blue)', accentClass:'b-blue',
-    status:'In Flight', statusClass:'b-blue', tags:['active','lunar','nasa'],
+    id:'artemis2', title:'Artemis II', agency:'NASA', icon:'🚀', color:'var(--green)', accentClass:'b-green',
+    completedDate: new Date('2026-04-10'),
+    completedSummary: 'First crewed deep space mission since Apollo 17 splashed down off San Diego on April 10, 2026. All mission objectives met — new human distance record set, heat shield validated, crew systems confirmed for future lunar landings.',
+    tags:['lunar','nasa'],
     launch:'Apr 1, 2026', target:'Moon (flyby)', duration:'10 days', vehicle:'SLS Block 1 + Orion',
-    progress:85,
+    progress:100,
     desc:'First crewed mission of the Artemis program and the first time humans have traveled beyond low Earth orbit since Apollo 17 in 1972. Four astronauts aboard the Orion spacecraft named "Integrity" are performing a free-return trajectory around the Moon. The mission is a critical systems test before the first lunar landing attempt.',
     objectives:[
       'Verify Orion life support and crew systems in deep space',
@@ -162,7 +164,7 @@ const MISSIONS = [
       {date:'Apr 1 2026', event:'Launch from KSC LC-39B', done:true},
       {date:'Apr 2 2026', event:'Translunar injection burn', done:true},
       {date:'Apr 6 2026', event:'Lunar flyby — new distance record set', done:true},
-      {date:'Apr 10 2026', event:'Splashdown off San Diego', done:false},
+      {date:'Apr 10 2026', event:'Splashdown off San Diego — mission complete', done:true},
     ],
     stats:[['Crew','4 astronauts'],['Distance','252,760 mi max'],['Speed','24,500 mph reentry'],['Orbit','Free-return trajectory']],
     crew:['Reid Wiseman (CDR)','Victor Glover (PLT)','Christina Koch (MS)','Jeremy Hansen (MS)'],
@@ -253,7 +255,7 @@ const MISSIONS = [
     stats:[['Distance','~24.3B km'],['Speed','17 km/s'],['Signal delay','~22.5 hours'],['Power','~4W remaining']],
   },
   {
-    id:'europaClipper', title:'Europa Clipper', agency:'NASA/JPL', icon:'💧', color:'var(--blue)', accentClass:'b-blue',
+    id:'europaClipper', title:'Europa Clipper', agency:'NASA/JPL', icon:'💧', color:'var(--green)', accentClass:'b-green',
     status:'En route to Jupiter', statusClass:'b-blue', tags:['active','deep','nasa'],
     launch:'Oct 14, 2024', target:'Europa (Jupiter moon)', duration:'~6 years', vehicle:'Falcon Heavy',
     progress:18,
@@ -318,7 +320,7 @@ const MISSIONS = [
     stats:[['Launch','Aug 2026'],['Target','South pole'],['Key payload','Water molecule analyzer'],['Hopper range','10+ km per hop']],
   },
   {
-    id:'artemis4', title:'Artemis IV', agency:'NASA', icon:'🧑‍🚀', color:'var(--blue)', accentClass:'b-blue',
+    id:'artemis4', title:'Artemis IV', agency:'NASA', icon:'🧑‍🚀', color:'var(--green)', accentClass:'b-green',
     status:'Upcoming', statusClass:'b-purple', tags:['upcoming','lunar','nasa'],
     launch:'Early 2028 (planned)', target:'Lunar surface — south pole', duration:'~30 days', vehicle:'SLS Block 1B',
     progress:0,
@@ -356,6 +358,14 @@ const TIMELINE = [
 
 let currentFilter = 'all';
 
+// Auto-set status based on completedDate
+function resolveStatus(m) {
+  const now = new Date();
+  if(m.completedDate && m.completedDate <= now) return {status:'Completed', statusClass:'b-purple'};
+  if(m.status) return {status:m.status, statusClass:m.statusClass};
+  return {status:'Active', statusClass:'b-green'};
+}
+
 function filterMissions(tag) {
   currentFilter = tag;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -363,41 +373,58 @@ function filterMissions(tag) {
   renderMissions();
 }
 
+function makeCard(m) {
+  const {status, statusClass} = resolveStatus(m);
+  const isCompleted = status === 'Completed';
+  const card = document.createElement('div');
+  card.className = 'mission-card';
+  card.style.cssText += `border-top: 2px solid ${isCompleted ? 'rgba(139,92,246,0.3)' : m.color + '22'};${isCompleted ? 'opacity:0.75;' : ''}`;
+  const progressBar = status !== 'Upcoming' ?
+    `<div class="progress-wrap">
+      <div class="progress-label"><span>Mission progress</span><span>${m.progress}%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%;background:${isCompleted ? 'var(--purple)' : m.color};"></div></div>
+    </div>` : '';
+  card.innerHTML = `
+    <div class="mission-card-header">
+      <div class="mission-icon" style="background:${m.color}18;">${m.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="mission-title">${m.title}</div>
+        <div class="mission-agency">${m.agency}</div>
+      </div>
+      <span class="badge ${statusClass}">${status}</span>
+    </div>
+    <div class="mission-desc">${isCompleted && m.completedSummary ? m.completedSummary.substring(0,160) : m.desc.substring(0,160)}...</div>
+    <div class="mission-stats">
+      ${m.stats.slice(0,4).map(s=>`<div class="stat"><div class="stat-label">${s[0]}</div><div class="stat-val">${s[1]}</div></div>`).join('')}
+    </div>
+    ${progressBar}
+    <div class="mission-footer">
+      <div style="font-size:10px;color:var(--muted2);">${isCompleted ? 'Completed: ' + m.completedDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'Launch: ' + m.launch}</div>
+      <span style="color:${isCompleted ? 'var(--purple)' : m.color};font-size:12px;">Details →</span>
+    </div>`;
+  card.onclick = () => openMission(m);
+  return card;
+}
+
 function renderMissions() {
   const grid = document.getElementById('mission-grid');
-  const filtered = currentFilter === 'all' ? MISSIONS : MISSIONS.filter(m => m.tags.includes(currentFilter));
+  const now = new Date();
+  let pool = currentFilter === 'all' ? MISSIONS : MISSIONS.filter(m => m.tags.includes(currentFilter));
+
+  const active = pool.filter(m => !m.completedDate || m.completedDate > now);
+  const completed = pool.filter(m => m.completedDate && m.completedDate <= now)
+    .sort((a,b) => b.completedDate - a.completedDate);
+
   grid.innerHTML = '';
-  filtered.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'mission-card';
-    card.style.setProperty('--accent', m.color);
-    card.style.cssText += `border-top: 2px solid ${m.color}22;`;
-    const progressBar = m.status !== 'Upcoming' ?
-      `<div class="progress-wrap">
-        <div class="progress-label"><span>Mission progress</span><span>${m.progress}%</span></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%;background:${m.color};"></div></div>
-      </div>` : '';
-    card.innerHTML = `
-      <div class="mission-card-header">
-        <div class="mission-icon" style="background:${m.color}18;">${m.icon}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="mission-title">${m.title}</div>
-          <div class="mission-agency">${m.agency}</div>
-        </div>
-        <span class="badge ${m.statusClass}">${m.status}</span>
-      </div>
-      <div class="mission-desc">${m.desc.substring(0,160)}...</div>
-      <div class="mission-stats">
-        ${m.stats.slice(0,4).map(s=>`<div class="stat"><div class="stat-label">${s[0]}</div><div class="stat-val">${s[1]}</div></div>`).join('')}
-      </div>
-      ${progressBar}
-      <div class="mission-footer">
-        <div style="font-size:10px;color:var(--muted2);">Launch: ${m.launch}</div>
-        <span style="color:${m.color};font-size:12px;">Details →</span>
-      </div>`;
-    card.onclick = () => openMission(m);
-    grid.appendChild(card);
-  });
+  active.forEach(m => grid.appendChild(makeCard(m)));
+
+  if(completed.length) {
+    const sep = document.createElement('div');
+    sep.style.cssText = 'grid-column:1/-1;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px;';
+    sep.textContent = 'Completed Missions';
+    grid.appendChild(sep);
+    completed.forEach(m => grid.appendChild(makeCard(m)));
+  }
 }
 
 function openMission(m) {
@@ -427,7 +454,24 @@ function closeModal() { document.getElementById('modal').classList.remove('open'
 
 function renderTimeline() {
   const tl = document.getElementById('timeline');
-  tl.innerHTML = TIMELINE.map(t => `
+  const now = new Date();
+
+  // Auto-add completed missions to timeline if not already listed
+  const completedMissions = MISSIONS.filter(m => m.completedDate && m.completedDate <= now);
+  const timelineIds = TIMELINE.map(t => t.missionId).filter(Boolean);
+  const autoEntries = completedMissions
+    .filter(m => !timelineIds.includes(m.id))
+    .map(m => ({
+      date: m.completedDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+      title: m.title + ' — mission complete',
+      color: 'var(--purple)',
+      desc: m.completedSummary || m.desc.substring(0,200),
+      missionId: m.id,
+    }));
+
+  const allEntries = [...TIMELINE, ...autoEntries];
+
+  tl.innerHTML = allEntries.map(t => `
     <div class="timeline-item">
       <div class="timeline-dot" style="background:${t.color};"></div>
       <div class="timeline-content">
