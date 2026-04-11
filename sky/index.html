@@ -250,7 +250,7 @@ const PLANET_INFO={
 let issLat=51.6,issLon=0;
 async function fetchISS(){
   try{
-    const r=await fetch('/functions/n2yo?type=positions&id=25544&seconds=1');
+    const r=await fetch('/n2yo?type=positions&id=25544&seconds=1');
     const d=await r.json();
     const pos=d.positions?d.positions[0]:d;
     issLat=parseFloat(pos.satlatitude!=null?pos.satlatitude:pos.latitude);
@@ -434,7 +434,7 @@ async function computePasses(){
   el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Fetching passes...</div>';
   try{
     const alt=Math.round((window.SITE_LOC?.alt)||100);
-    const url=`/functions/n2yo?type=passes&id=25544&lat=${userLat}&lon=${userLon}&alt=${alt}&days=10&minEl=10`;
+    const url=`/n2yo?type=passes&id=25544&lat=${userLat}&lon=${userLon}&alt=${alt}&days=10&minEl=10`;
     const r=await fetch(url);
     const d=await r.json();
     const passes=d.passes;
