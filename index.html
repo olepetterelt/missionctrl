@@ -470,15 +470,15 @@ fetchISS();setInterval(fetchISS,10000);
 // ── Crew ───────────────────────────────────────────
 const MISSIONS_DB=[
   {craft:'ISS — Expedition 74',color:'var(--blue)',returnDate:null,crew:[
-    {name:'Michael Fincke',country:'USA',role:'Commander'},
-    {name:'Zena Cardman',country:'USA',role:'Flight Engineer'},
-    {name:'Kimiya Yui',country:'Japan',role:'Flight Engineer'},
-    {name:'Oleg Platonov',country:'Russia',role:'Flight Engineer'},
+    {name:'Sergey Kud-Sverchkov',country:'Russia',role:'Commander'},
     {name:'Christopher Williams',country:'USA',role:'Flight Engineer'},
-    {name:'Sergey Kud-Sverchkov',country:'Russia',role:'Flight Engineer'},
     {name:'Sergey Mikayev',country:'Russia',role:'Flight Engineer'},
+    {name:'Jessica Meir',country:'USA',role:'Flight Engineer (Crew-12)'},
+    {name:'Jack Hathaway',country:'USA',role:'Flight Engineer (Crew-12)'},
+    {name:'Sophie Adenot',country:'France/ESA',role:'Flight Engineer (Crew-12)'},
+    {name:'Andrey Fedyaev',country:'Russia',role:'Flight Engineer (Crew-12)'},
   ]},
-  {craft:'Tiangong — Shenzhou 21',color:'var(--red)',returnDate:new Date('2026-05-01'),crew:[
+  {craft:'Tiangong — Shenzhou 21',color:'var(--red)',returnDate:new Date('2026-05-31'),crew:[
     {name:'Zhang Lu',country:'China',role:'Commander'},
     {name:'Wu Fei',country:'China',role:'Flight Engineer'},
     {name:'Zhang Hongzhang',country:'China',role:'Payload Specialist'},
@@ -1132,7 +1132,8 @@ async function fetchISSSchedule(){
     {date:new Date('2026-04-20T00:00:00Z'),title:'EVA — solar array maintenance',type:'eva',detail:'Planned spacewalk to inspect and maintain solar array panels on the starboard truss. Duration ~6.5 hours.'},
     {date:new Date('2026-05-01T00:00:00Z'),title:'Cygnus NG-24 docking',type:'cargo',detail:'Northrop Grumman Cygnus cargo resupply arriving with ~3,700 kg of supplies and experiments.'},
     {date:new Date('2026-05-15T00:00:00Z'),title:'VEGGIE crop harvest',type:'science',detail:'Harvest of fresh vegetables grown aboard ISS. Part of ongoing plant biology research for long-duration spaceflight.'},
-    {date:new Date('2026-06-01T00:00:00Z'),title:'Soyuz crew rotation',type:'crew',detail:'Russian cosmonaut rotation via Soyuz MS. Kononenko approaching end of his record-setting mission.'},
+    {date:new Date('2026-05-31T00:00:00Z'),title:'Shenzhou-21 return',type:'crew',detail:'Zhang Lu, Wu Fei and Zhang Hongzhang return after extended ~7-month mission. Mission extended by one month due to Shenzhou-20 debris damage incident.'},
+    {date:new Date('2026-07-14T00:00:00Z'),title:'Soyuz MS-29 / Expedition 75',type:'crew',detail:'Next Russian crew rotation. Partial crew handover begins Expedition 75.'},
     {date:new Date('2026-06-15T00:00:00Z'),title:'Dragon Crew-11 launch',type:'crew',detail:'SpaceX Crew Dragon launching next NASA crew to ISS. Exact crew and date TBC.'},
     {date:new Date('2026-11-02T00:00:00Z'),title:'26th anniversary — continuous habitation',type:'milestone',detail:'ISS marks 26 years of unbroken human habitation, ongoing since November 2, 2000.'},
   ];
