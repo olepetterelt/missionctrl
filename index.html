@@ -114,6 +114,10 @@ canvas{display:block;}
 
 /* launches */
 .launch-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.launch-item{width:100%;background:none;border:0;border-bottom:1px solid var(--border);font:inherit;color:inherit;text-align:left;}
+.launch-details{flex:1;min-width:0;}
+.launch-timing{text-align:right;flex-shrink:0;}
+.launch-item .ln,.launch-item .lv,.launch-item .lcd{display:block;}
 .launch-item:last-child{border-bottom:none;}
 .launch-item:hover .ln{color:var(--blue);}
 .lcd{font-family:var(--mono);font-size:11px;color:var(--blue);min-width:86px;text-align:right;}
@@ -136,7 +140,7 @@ canvas{display:block;}
 .mis-det{font-size:10px;color:var(--muted2);}
 
 /* news */
-.news-item{padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.news-item{display:block;text-decoration:none;color:inherit;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
 .news-item:last-child{border-bottom:none;}
 .news-item:hover .news-title{color:var(--blue);}
 .news-title{font-size:12px;line-height:1.4;margin-bottom:2px;transition:color .15s;}
@@ -195,12 +199,12 @@ canvas{display:block;}
     <div class="row-kv"><span style="color:var(--muted2)">Day of year</span><span class="mono" id="day-of-year">—</span></div>
   </div>
   <div class="card">
-    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">ISS Status</span><div class="live-dot" style="margin-left:auto;"></div></div>
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">ISS Status</span><span id="iss-updated" class="lbl" style="margin-left:auto;">Loading…</span></div>
     <div class="stat-grid">
       <div class="stat-cell"><div class="lbl">Latitude</div><div class="val" id="iss-lat" style="color:var(--blue);">—</div></div>
       <div class="stat-cell"><div class="lbl">Longitude</div><div class="val" id="iss-lon" style="color:var(--blue);">—</div></div>
-      <div class="stat-cell"><div class="lbl">Altitude</div><div class="val" style="color:var(--green);">~408 km</div></div>
-      <div class="stat-cell"><div class="lbl">Speed</div><div class="val" style="color:var(--green);">27,600 km/h</div></div>
+      <div class="stat-cell"><div class="lbl">Altitude</div><div class="val" style="color:var(--green);" id="iss-alt">—</div></div>
+      <div class="stat-cell"><div class="lbl">Speed</div><div class="val" style="color:var(--green);" id="iss-speed">—</div></div>
     </div>
     <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">
       <span class="badge b-blue">92.7 min orbit</span>
@@ -224,7 +228,7 @@ canvas{display:block;}
       <div><div class="lbl">Kp Index</div><div class="val" style="color:var(--green);font-size:20px;" id="kp-now">—</div></div>
       <div><div class="lbl">Visibility</div><div id="aurora-vis" style="margin-top:4px;"><span class="badge b-amber">Loading…</span></div></div>
     </div>
-    <div class="lbl">24h forecast</div>
+    <div class="lbl" id="kp-updated">Recent Kp observations</div>
     <div class="kp-bars" id="kp-bars"></div>
     <div style="font-size:10px;color:var(--muted2);" id="solar-wind">Solar wind loading…</div>
     <div class="divider"></div>
@@ -235,9 +239,9 @@ canvas{display:block;}
 <!-- Row 2: ISS world map (wide) + Crew -->
 <div class="row r21">
   <div class="card">
-    <div class="card-hd"><div class="live-dot"></div><span class="card-title">ISS Ground Track — Live</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="iss-region"></span></div>
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">ISS Ground Track</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="iss-region"></span></div>
     <canvas id="map-canvas"></canvas>
-    <div style="font-size:10px;color:var(--muted2);margin-top:6px;">Blue dot = ISS · Teal dot = your location · Updates every 10 seconds</div>
+    <div style="font-size:10px;color:var(--muted2);margin-top:6px;">Dot = latest ISS position · Teal dot = selected location</div>
   </div>
   <div class="card">
     <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><span class="card-title">Crew in Space</span>
@@ -281,7 +285,7 @@ canvas{display:block;}
 <div class="row r2">
   <div class="card">
     <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><span class="card-title">Upcoming Launches</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/launches/" style="color:var(--blue);text-decoration:none;">All launches →</a></span></div>
-    <div id="launch-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+    <div class="lbl" id="launch-updated"></div><div id="launch-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
     <div class="imodal" id="launch-modal">
       <button class="close-btn" onclick="closeLaunchModal()">✕</button>
       <div style="font-size:14px;font-weight:500;margin-bottom:3px;" id="lm-name"></div>
@@ -336,7 +340,7 @@ canvas{display:block;}
   </div>
   <div class="card">
     <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">Space News</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/news/" style="color:var(--blue);text-decoration:none;">More →</a></span></div>
-    <div id="news-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+    <div class="lbl" id="news-updated"></div><div id="news-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
   </div>
 </div>
 
@@ -400,7 +404,7 @@ window.onLocationReady=function(loc){
   const hint=document.getElementById('aurora-hint');
   if(hint){const al=Math.abs(loc.lat);const t=al>=67?1:al>=63?2:al>=60?4:al>=55?5:al>=50?6:7;
     hint.textContent=`Kp≥${t} = possible from ${name} · Kp≥${Math.min(9,t+2)} = high chance`;}
-  fetchISS();drawSky();fetchAurora();computeISSPasses();renderMeteors();
+  drawMap();drawSky();renderAurora();computeISSPasses();renderMeteors();
 };
 
 // ── Clock ──────────────────────────────────────────
@@ -415,19 +419,68 @@ function tick(){
 setInterval(tick,1000);tick();
 
 // ── ISS ────────────────────────────────────────────
-let issLat=51.6,issLon=0;
-async function fetchISS(){
-  try{
-    const r=await fetch(`/n2yo?type=positions&id=25544&lat=${LAT_DEG}&lon=${LON_DEG}&alt=100&seconds=1`);
-    const d=await r.json();
-    const pos=d.positions?d.positions[0]:d;
-    issLat=parseFloat(pos.satlatitude??pos.latitude);
-    issLon=parseFloat(pos.satlongitude??pos.longitude);
-    const la=issLat>0?issLat.toFixed(2)+'°N':Math.abs(issLat).toFixed(2)+'°S';
-    const lo=issLon>0?issLon.toFixed(2)+'°E':Math.abs(issLon).toFixed(2)+'°W';
-    document.getElementById('iss-lat').textContent=la;
-    document.getElementById('iss-lon').textContent=lo;
-  }catch(e){issLat+=0.3;if(issLat>51.6)issLat=-51.6;}
+async function getFeed(url) {
+  const response = await fetch(url, {signal: AbortSignal.timeout(8000)});
+  if (!response.ok) throw new Error('Feed unavailable');
+  return response.json();
+}
+
+function pollFeed(refresh, interval) {
+  let pending = false;
+  async function update() {
+    if (document.hidden || pending) return;
+    pending = true;
+    try { await refresh(); }
+    finally { pending = false; }
+  }
+  update();
+  setInterval(update, interval);
+  document.addEventListener('visibilitychange', update);
+}
+
+function feedStatus(time, stale) {
+  if (!time) return 'Unavailable';
+  const stamp = new Date(time).toISOString().slice(0,19).replace('T',' ');
+  return (stale ? 'Last known · ' : 'Updated ') + stamp + ' UTC';
+}
+
+function feedNumber(value) {
+  return value == null || value === '' ? NaN : Number(value);
+}
+
+function validISSPosition(lat, lon) {
+  return Math.abs(feedNumber(lat)) <= 90 && Math.abs(feedNumber(lon)) <= 180;
+}
+
+let issLat, issLon, issTime, issStale = true;
+async function fetchISS() {
+  try {
+    const pos = await getFeed('https://api.wheretheiss.at/v1/satellites/25544').then(data => {
+      if (!validISSPosition(data?.latitude, data?.longitude)) throw new Error('Invalid ISS position');
+      return data;
+    }).catch(async () => {
+      const data = await getFeed('/n2yo?type=positions&id=25544&seconds=1');
+      const row = data.positions?.[0];
+      return {latitude:row?.satlatitude, longitude:row?.satlongitude, altitude:row?.sataltitude, timestamp:row?.timestamp};
+    });
+    const lat = feedNumber(pos.latitude), lon = feedNumber(pos.longitude);
+    if (!validISSPosition(lat, lon)) throw new Error('Invalid ISS position');
+    issLat = lat;
+    issLon = lon;
+    const timestamp = feedNumber(pos.timestamp) * 1000;
+    issTime = Number.isFinite(timestamp) && timestamp > 0 && timestamp <= Date.now() + 60000 ? timestamp : Date.now();
+    issStale = Date.now() - issTime > 90000;
+    const altitude = feedNumber(pos.altitude), speed = feedNumber(pos.velocity);
+    document.getElementById('iss-lat').textContent = Math.abs(lat).toFixed(2) + '°' + (lat < 0 ? 'S' : 'N');
+    document.getElementById('iss-lon').textContent = Math.abs(lon).toFixed(2) + '°' + (lon < 0 ? 'W' : 'E');
+    document.getElementById('iss-alt').textContent = Number.isFinite(altitude) ? altitude.toFixed(1) + ' km' : '—';
+    document.getElementById('iss-speed').textContent = Number.isFinite(speed) ? Math.round(speed).toLocaleString() + ' km/h' : '—';
+  } catch {
+    issStale = true;
+  }
+  const status = feedStatus(issTime, issStale);
+  document.getElementById('iss-updated').textContent = status;
+  document.getElementById('iss-region').textContent = status;
   drawMap();
 }
 function drawMap(){
@@ -443,19 +496,16 @@ function drawMap(){
   // Equator
   ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
-  // ISS
-  const px=((issLon+180)/360)*W,py=((90-issLat)/180)*H;
-  ctx.strokeStyle='rgba(74,158,255,0.08)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
-  ctx.fillStyle='rgba(74,158,255,0.12)';ctx.beginPath();ctx.arc(px,py,22,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(74,158,255,0.3)';ctx.beginPath();ctx.arc(px,py,11,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#4a9eff';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(74,158,255,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('ISS',px+6,py-14);
-  // User dot
-  const ox=((LON_DEG+180)/360)*W,oy=((90-LAT_DEG)/180)*H;
-  ctx.fillStyle='var(--teal)';ctx.beginPath();ctx.arc(ox,oy,3,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(0,201,167,0.7)';ctx.font='8px monospace';ctx.fillText(window.SITE_LOC?.name?.split(',')[0]||'You',ox+4,oy-10);
+if (issTime) {
+    const x = (issLon + 180) / 360 * W, y = (90 - issLat) / 180 * H;
+    ctx.fillStyle = issStale ? '#8890a4' : '#4a9eff';
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+    ctx.font='9px monospace';ctx.fillText('ISS',x+6,y-8);
+  }
+  if (window.SITE_LOC) {
+    const x = (LON_DEG + 180) / 360 * W, y = (90 - LAT_DEG) / 180 * H;
+    ctx.fillStyle='#00c9a7';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+  }
   // ISS orbital limit lines (51.6°N and 51.6°S)
   const limN=((90-51.6)/180)*H,limS=((90+51.6)/180)*H;
   ctx.strokeStyle='rgba(74,158,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
@@ -465,7 +515,8 @@ function drawMap(){
   ctx.fillStyle='rgba(74,158,255,0.12)';ctx.font='8px monospace';ctx.textAlign='right';
   ctx.fillText('51.6°N max',W-4,limN-3);ctx.fillText('51.6°S max',W-4,limS+10);
 }
-fetchISS();setInterval(fetchISS,10000);
+drawMap();
+pollFeed(fetchISS, 30000);
 
 // ── Crew ───────────────────────────────────────────
 const MISSIONS_DB=[
@@ -729,20 +780,6 @@ function drawSky(){
       extra:info.desc||'',size:info.size,dist:info.dist});
   });
 
-  // ISS (approximate sky position from ground track)
-  const issRa=((issLon/360)*2*Math.PI+lst)%(2*Math.PI);
-  const issDec=Math.min(51.6*DEG,Math.abs(issLat*DEG))*Math.sign(issLat||1);
-  const {alt:iAlt,az:iAz}=altAz(issRa,issDec,lst,LAT);
-  const rAlt=Math.max(0.18,Math.abs(iAlt)*0.5+0.15);
-  const ip=proj(rAlt,iAz);
-  if(ip){
-    ctx.fillStyle='#4a9eff';ctx.beginPath();ctx.arc(ip.x,ip.y,5,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(74,158,255,0.4)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(ip.x,ip.y,9,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle='rgba(74,158,255,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('ISS',ip.x+9,ip.y);
-    skyObjects.push({name:'ISS',x:ip.x,y:ip.y,r:13,type:'Space station',color:'#4a9eff',altDeg:issLat,azDeg:issLon,
-      extra:`At ${Math.abs(issLat).toFixed(1)}°${issLat>0?'N':'S'} ${Math.abs(issLon).toFixed(1)}°${issLon>0?'E':'W'}. Alt 408 km. Speed 27,600 km/h.`,
-      size:'109×73 m',dist:'~408 km'});
-  }
 
   // Clip to circle
   ctx.save();ctx.beginPath();ctx.arc(CX,CY,R+1,0,Math.PI*2);
@@ -820,75 +857,93 @@ async function computeISSPasses(){
 computeISSPasses();
 
 // ── Aurora ─────────────────────────────────────────
-async function fetchAurora(){
-  let kpNow=2.7,gotData=false;
-  try{
-    const r=await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
-    if(!r.ok)throw new Error();
-    const d=await r.json(),recent=d.slice(-24);
-    kpNow=parseFloat(recent[recent.length-1]?.kp_index||2.7);
-    gotData=true;
-    const bars=document.getElementById('kp-bars');bars.innerHTML='';
-    recent.forEach(pt=>{
-      const kp=parseFloat(pt.kp_index||0),pct=Math.max(5,Math.min(100,(kp/9)*100));
-      const col=kp>=7?'var(--red)':kp>=5?'var(--amber)':'var(--blue)';
-      const bar=document.createElement('div');bar.className='kp-bar';
-      bar.style.cssText=`height:${pct}%;background:${col};opacity:0.75;align-self:flex-end;`;
-      bar.title=`Kp ${kp.toFixed(1)}`;bars.appendChild(bar);
-    });
-  }catch(e){
-    const bars=document.getElementById('kp-bars');bars.innerHTML='';
-    [2,1.8,2.3,3,2.7,2.1,1.9,2.4,2.8,3.1,2.9,2.5,2.2,2,1.8,2.1,2.4,2.7,3,2.8,2.3,2,1.7,2.1].forEach(kp=>{
-      const bar=document.createElement('div');bar.className='kp-bar';
-      bar.style.cssText=`height:${Math.max(5,(kp/9)*100)}%;background:var(--blue);opacity:0.4;align-self:flex-end;`;
-      bars.appendChild(bar);
-    });
-  }
-  const absLat=Math.abs(LAT_DEG);
-  const kpThresh=absLat>=67?1:absLat>=63?2:absLat>=60?4:absLat>=55?5:absLat>=50?6:7;
-  let visText,visCls;
-  if(kpNow>=kpThresh+1){visText='High chance';visCls='b-green';}
-  else if(kpNow>=kpThresh){visText='Possible';visCls='b-amber';}
-  else{visText='Unlikely';visCls='b-red';}
-  document.getElementById('kp-now').textContent=kpNow.toFixed(1);
-  document.getElementById('aurora-vis').innerHTML=`<span class="badge ${visCls}">${visText}</span>`;
-  if(!gotData)document.getElementById('aurora-vis').innerHTML+='<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Estimated</div>';
-}
-async function fetchSolarWind(){
-  try{
-    const r=await fetch('https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json');
-    if(!r.ok)throw new Error();
-    const d=await r.json(),last=d[d.length-1];
-    if(last)document.getElementById('solar-wind').textContent=`Wind: ${Math.round(last.proton_speed||450)} km/s · Density: ${(last.proton_density||5).toFixed(1)} p/cm³`;
-  }catch(e){document.getElementById('solar-wind').textContent='Wind: ~450 km/s · Density: ~5 p/cm³ (est.)';}
-}
-fetchAurora();fetchSolarWind();
-setInterval(()=>{fetchAurora();fetchSolarWind();},300000);
+let kpReading, kpStale = true, windReading;
 
-// ── Solar ──────────────────────────────────────────
-async function fetchSolar(){
-  try{
-    const r=await fetch('https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json');
-    const d=await r.json(),last=d[d.length-1];
-    if(last){document.getElementById('sunspot').textContent=Math.round(last.ssn||120);
-      document.getElementById('solar-flux').textContent=(last.f10_7||145).toFixed(1)+' sfu';}
-  }catch(e){document.getElementById('sunspot').textContent='~140 (est.)';document.getElementById('solar-flux').textContent='~160 sfu (est.)';}
-  try{
-    const r=await fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json');
-    const d=await r.json();
-    if(d?.length){const cl=d[0].class||'B1';const cls=cl[0]==='X'?'b-red':cl[0]==='M'?'b-amber':'b-green';
-      document.getElementById('xray-badge').innerHTML=`<span class="badge ${cls}">${cl}</span>`;}
-    else throw new Error();
-  }catch(e){document.getElementById('xray-badge').innerHTML='<span class="badge b-green">B class (est.)</span>';}
-  try{
-    const r=await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
-    const d=await r.json(),kp=parseFloat(d[d.length-1]?.kp_index||2);
-    const gCls=kp>=7?'b-red':kp>=5?'b-amber':'b-green';
-    const gTxt=kp>=7?'G3-G5 Storm':kp>=5?'G1-G2 Storm':kp>=3?'Active':'Quiet';
-    document.getElementById('geo-badge').innerHTML=`<span class="badge ${gCls}">${gTxt}</span>`;
-  }catch(e){document.getElementById('geo-badge').innerHTML='<span class="badge b-green">Quiet (est.)</span>';}
+function observationTime(value) {
+  if (typeof value !== 'string') return NaN;
+  return Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : value + 'Z');
 }
-fetchSolar();setInterval(fetchSolar,600000);
+
+function renderAurora() {
+  const visibility = document.getElementById('aurora-vis');
+  if (!kpReading || kpStale || !window.SITE_LOC) {
+    visibility.textContent = !kpReading || kpStale ? 'Unavailable' : 'Set your location';
+    return;
+  }
+  const lat = Math.abs(LAT_DEG);
+  const threshold = lat >= 67 ? 1 : lat >= 63 ? 2 : lat >= 60 ? 4 : lat >= 55 ? 5 : lat >= 50 ? 6 : 7;
+  const kp = kpReading.value;
+  visibility.textContent = (kp >= threshold + 1 ? 'High chance' : kp >= threshold ? 'Possible' : 'Unlikely') + ' (estimate)';
+}
+
+async function fetchAurora() {
+  try {
+    const data = await getFeed('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const readings = data.map(row => ({value:feedNumber(row.kp_index), time:observationTime(row.time_tag)}))
+      .filter(row => row.value >= 0 && row.value <= 9 && Number.isFinite(row.time))
+      .sort((a,b) => a.time - b.time).slice(-24);
+    if (!readings.length) throw new Error('No valid Kp readings');
+    kpReading = readings.at(-1);
+    kpStale = Date.now() - kpReading.time > 15 * 60000;
+    const bars = readings.map(({value}) => {
+      const bar = document.createElement('div');
+      bar.className = 'kp-bar';
+      bar.style.height = Math.max(5,value / 9 * 100) + '%';
+      bar.style.background = value >= 7 ? 'var(--red)' : value >= 5 ? 'var(--amber)' : 'var(--blue)';
+      bar.title = 'Kp ' + value.toFixed(1);
+      return bar;
+    });
+    document.getElementById('kp-bars').replaceChildren(...bars);
+  } catch {
+    kpStale = true;
+  }
+  const status = feedStatus(kpReading?.time, kpStale);
+  document.getElementById('kp-updated').textContent = 'Recent Kp observations · ' + status;
+  document.getElementById('kp-now').textContent = kpReading?.value.toFixed(1) ?? '—';
+  const kp = kpReading?.value;
+  const conditions = kp >= 7 ? 'Strong storm' : kp >= 5 ? 'Storm' : kp >= 3 ? 'Active' : 'Quiet';
+  document.getElementById('geo-badge').textContent = kpReading ? conditions + ' · ' + status : status;
+  renderAurora();
+}
+
+async function fetchSolarWind() {
+  let stale = true;
+  try {
+    const data = await getFeed('https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json');
+    const row = data.findLast(row => feedNumber(row.proton_speed) > 0 &&
+      feedNumber(row.proton_density) >= 0 && Number.isFinite(observationTime(row.time_tag)));
+    if (!row) throw new Error('No valid solar wind readings');
+    windReading = {speed:Number(row.proton_speed), density:Number(row.proton_density), time:observationTime(row.time_tag)};
+    stale = Date.now() - windReading.time > 15 * 60000;
+  } catch {}
+  document.getElementById('solar-wind').textContent = windReading
+    ? 'Wind: ' + Math.round(windReading.speed) + ' km/s · Density: ' + windReading.density.toFixed(1) + ' p/cm³ · ' + feedStatus(windReading.time, stale)
+    : 'Solar wind unavailable';
+}
+pollFeed(fetchAurora, 60000);
+pollFeed(fetchSolarWind, 60000);
+async function fetchSolar() {
+  const sunspot = document.getElementById('sunspot');
+  const flux = document.getElementById('solar-flux');
+  const flare = document.getElementById('xray-badge');
+  await Promise.all([
+    getFeed('https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json').then(data => {
+      const row = data.findLast(row => feedNumber(row.ssn) >= 0 && feedNumber(row.f10_7) > 0);
+      if (!row) throw new Error('No solar cycle readings');
+      sunspot.textContent = Math.round(row.ssn) + ' · ' + row.time_tag;
+      flux.textContent = Number(row.f10_7).toFixed(1) + ' sfu · ' + row.time_tag;
+    }).catch(() => {
+      sunspot.textContent = 'Unavailable';
+      flux.textContent = 'Unavailable';
+    }),
+    getFeed('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json').then(data => {
+      const row = data.find(row => typeof row.class === 'string' && row.class.trim());
+      const time = observationTime(row?.max_time ?? row?.begin_time);
+      flare.textContent = row ? row.class + (Number.isFinite(time) ? ' · ' + new Date(time).toISOString().slice(0,16).replace('T',' ') + ' UTC' : '') : 'No flare reported';
+    }).catch(() => { flare.textContent = 'Unavailable'; })
+  ]);
+}
+pollFeed(fetchSolar, 600000);
 
 // ── Asteroids ──────────────────────────────────────
 const ASTEROID_FALLBACK=[
@@ -1044,85 +1099,151 @@ fetchAPOD();
 
 // ── Launches ───────────────────────────────────────
 const PAD2=n=>String(n).padStart(2,'0');
-function cdStr(net){
-  const diff=net-Date.now();if(diff<0)return'Launched';
-  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-  return d>0?`T-${d}d ${PAD2(h)}h`:`T-${PAD2(h)}:${PAD2(m)}:${PAD2(s)}`;
+function launchCountdown(launch) {
+  if (launch.status === 'Success' || launch.status === 'In Flight') return 'Launched';
+  if (launch.status === 'Failure' || launch.status === 'Partial Failure') return 'Completed';
+  if (launch.status === 'Hold') return 'On hold';
+  if (!Number.isFinite(launch.net)) return 'TBD';
+  const date = new Date(launch.net);
+  if (launch.precision === 'Year') return String(date.getUTCFullYear());
+  if (launch.precision === 'Month') return date.toLocaleDateString('en-GB',{month:'short',year:'numeric',timeZone:'UTC'});
+  if (launch.precision === 'Day') return date.toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
+  if (launch.precision !== 'Hour' && launch.precision !== 'Minute' && launch.precision !== 'Second') return 'Time TBD';
+  const diff = launch.net - Date.now();
+  if (diff <= 0) return 'Awaiting update';
+  const days = Math.floor(diff / 86400000), hours = Math.floor(diff / 3600000) % 24;
+  const mins = Math.floor(diff / 60000) % 60, secs = Math.floor(diff / 1000) % 60;
+  return days ? 'T-' + days + 'd ' + PAD2(hours) + 'h' : 'T-' + [hours,mins,secs].map(PAD2).join(':');
 }
-const LAUNCHES_FB=[
-  {name:"Chang'e-7",veh:'Long March 5',net:new Date('2026-08-01T00:00:00Z').getTime(),status:'Planned',sc:'b-amber',agency:'CNSA',site:'Wenchang',payload:'Orbiter+lander+rover+hopper',desc:"China's lunar south pole mission. The hopper will fly into permanently shadowed craters to search for water ice.",wiki:'https://en.wikipedia.org/wiki/Chang%27e_7'},
-  {name:'Blue Ghost M2',veh:'Falcon 9',net:new Date('2026-10-01T00:00:00Z').getTime(),status:'Planned',sc:'b-blue',agency:'Firefly/NASA',site:'Cape Canaveral',payload:'Lunar lander',desc:"Firefly's second Blue Ghost mission to the lunar far side. Carries NASA science payloads.",wiki:'https://en.wikipedia.org/wiki/Blue_Ghost_(spacecraft)'},
-  {name:'Artemis III',veh:'SLS Block 1',net:new Date('2027-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-purple',agency:'NASA',site:'KSC',payload:'Orion + crew',desc:'Crewed LEO demonstration of commercial lunar landers before the actual landing attempt.',wiki:'https://en.wikipedia.org/wiki/Artemis_III'},
-  {name:'VIPER Rover',veh:'Falcon Heavy',net:new Date('2027-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-teal',agency:'NASA',site:'KSC',payload:'Ice-hunting rover',desc:'Volatiles Investigating Polar Exploration Rover — will drill for water ice in permanently shadowed lunar craters.',wiki:'https://en.wikipedia.org/wiki/VIPER_(rover)'},
-  {name:'Artemis IV',veh:'SLS Block 1B',net:new Date('2028-02-01T00:00:00Z').getTime(),status:'Planned',sc:'b-green',agency:'NASA',site:'KSC',payload:'Orion + crew',desc:'First crewed lunar landing since Apollo 17 in 1972. South pole landing near water ice deposits.',wiki:'https://en.wikipedia.org/wiki/Artemis_IV'},
-  {name:"Chang'e-8",veh:'Long March 5',net:new Date('2028-06-01T00:00:00Z').getTime(),status:'Planned',sc:'b-amber',agency:'CNSA',site:'Wenchang',payload:'Lander + ISRU equip.',desc:'Tests in-situ resource utilisation including 3D printing from lunar regolith. Foundation of ILRS.',wiki:'https://en.wikipedia.org/wiki/Chang%27e_8'},
-];
-let launchData=LAUNCHES_FB;
-async function fetchLaunches(){
-  try{
-    const r=await fetch('https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=6&format=json');
-    if(!r.ok)throw new Error();
-    const d=await r.json();
-    if(d.results?.length){
-      launchData=d.results.map(l=>({name:l.name,veh:l.rocket?.configuration?.name||'',net:new Date(l.net).getTime(),
-        status:l.status?.abbrev||'TBD',sc:'b-blue',agency:l.launch_service_provider?.name||'—',
-        site:l.pad?.location?.name||'—',payload:l.mission?.name||l.name,
-        desc:l.mission?.description||'No description available.',wiki:l.url||''}));
+
+function feedElement(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+function feedLink(url) {
+  try {
+    const link = new URL(url);
+    if (link.protocol === 'https:' || link.protocol === 'http:') return link.href;
+  } catch {}
+  return '';
+}
+
+let launchTime, openLaunch;
+let countdowns = [];
+
+async function fetchLaunches() {
+  const list = document.getElementById('launch-list');
+  const status = document.getElementById('launch-updated');
+  try {
+    const data = await getFeed('https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=6&format=json');
+    if (!Array.isArray(data.results)) throw new Error('Invalid launch feed');
+    const launches = data.results.map(row => ({
+      id: row.id, name: row.name, vehicle: row.rocket?.configuration?.name,
+      net: Date.parse(row.net), precision: row.net_precision?.name,
+      status: row.status?.abbrev || 'TBD', agency: row.launch_service_provider?.name,
+      site: row.pad?.location?.name, payload: row.mission?.name,
+      description: row.mission?.description, link: feedLink(row.url)
+    }));
+    countdowns = [];
+    list.replaceChildren(...launches.map(launch => {
+      const button = feedElement('button','launch-item','');
+      button.type = 'button';
+      const name = feedElement('span','ln',launch.name);
+      const vehicle = feedElement('span','lv',launch.vehicle || launch.agency || '');
+      const countdown = feedElement('span','lcd',launchCountdown(launch));
+      const label = feedElement('span','badge b-blue',launch.status);
+      const details = feedElement('span','launch-details','');
+      const timing = feedElement('span','launch-timing','');
+      details.append(name,vehicle);
+      timing.append(countdown,label);
+      button.append(details,timing);
+      button.addEventListener('click', () => openLaunchModal(launch));
+      countdowns.push({countdown,launch});
+      return button;
+    }));
+    if (!launches.length) list.textContent = 'No upcoming launches reported.';
+    if (openLaunch) {
+      const updated = launches.find(launch => launch.id === openLaunch.id);
+      if (updated) openLaunchModal(updated, false);
+      else closeLaunchModal();
     }
-  }catch(e){}
-  renderLaunches();
-  setInterval(()=>launchData.forEach(l=>{const e=document.getElementById('cd'+l.net);if(e)e.textContent=cdStr(l.net);}),1000);
+    launchTime = Date.now();
+    status.textContent = feedStatus(launchTime, false);
+  } catch {
+    status.textContent = feedStatus(launchTime, true);
+    if (!launchTime) list.textContent = 'Launch schedule unavailable.';
+  }
 }
-function renderLaunches(){
-  const el=document.getElementById('launch-list');el.innerHTML='';
-  launchData.slice(0,6).forEach(l=>{
-    const item=document.createElement('div');item.className='launch-item';
-    item.innerHTML=`<div style="flex:1;min-width:0;"><div class="ln">${l.name}</div><div class="lv">${l.veh||l.agency||''}</div></div>
-      <div style="text-align:right;flex-shrink:0;"><div class="lcd" id="cd${l.net}">${cdStr(l.net)}</div><span class="badge ${l.sc}">${l.status}</span></div>`;
-    item.onclick=()=>openLaunchModal(l);el.appendChild(item);
-  });
-}
-function openLaunchModal(l){
-  document.getElementById('lm-name').textContent=l.name;
-  document.getElementById('lm-sub').textContent=(l.agency||'')+(l.site?' · '+l.site:'');
-  const net=new Date(l.net);
-  document.getElementById('lm-stats').innerHTML=[['Countdown',cdStr(l.net)],['Target date',net.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})],['Rocket',l.veh||'—'],['Agency',l.agency||'—'],['Launch site',l.site||'—'],['Status',l.status||'—']]
-    .map(s=>`<div class="modal-stat"><div class="lbl">${s[0]}</div><div class="val">${s[1]}</div></div>`).join('');
-  document.getElementById('lm-desc').textContent=l.desc||'No description available.';
-  document.getElementById('lm-btn').innerHTML=l.wiki?`<a href="${l.wiki}" target="_blank" style="color:var(--blue);font-size:11px;text-decoration:none;">Read more →</a>`:'';
-  document.getElementById('launch-modal').classList.add('open');
-  document.getElementById('launch-modal').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function closeLaunchModal(){document.getElementById('launch-modal').classList.remove('open');}
-fetchLaunches();
 
-// ── News ───────────────────────────────────────────
-async function fetchNews(){
-  const el=document.getElementById('news-list');
-  let items=[
-    {title:'Artemis II crew completes historic lunar flyby, splashdown confirmed',site:'NASA',date:'10 Apr 2026',url:'https://nasa.gov'},
-    {title:"Chang'e-7 on track for August 2026 south pole launch",site:'SpaceNews',date:'8 Apr 2026',url:'https://spacenews.com'},
-    {title:'JWST reveals new details of galaxy formation at cosmic dawn',site:'ESA/Webb',date:'7 Apr 2026',url:'https://webb.nasa.gov'},
-    {title:'SpaceX Starship completes 12th test flight from Boca Chica',site:'NASASpaceFlight',date:'5 Apr 2026',url:'https://nasaspaceflight.com'},
-    {title:'Perseverance caches 23rd Mars sample — MSR planning continues',site:'JPL',date:'4 Apr 2026',url:'https://mars.nasa.gov'},
-    {title:'Blue Origin passes Blue Moon lander qualification milestone',site:'Space.com',date:'3 Apr 2026',url:'https://space.com'},
-  ];
-  try{
-    const r=await fetch('https://api.spaceflightnewsapi.net/v4/articles/?limit=6&format=json');
-    if(!r.ok)throw new Error();
-    const d=await r.json();
-    if(d.results?.length)items=d.results.map(a=>({title:a.title,site:a.news_site,date:new Date(a.published_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),url:a.url}));
-  }catch(e){}
-  el.innerHTML='';
-  items.slice(0,6).forEach(a=>{
-    const item=document.createElement('div');item.className='news-item';
-    item.innerHTML=`<div class="news-title">${a.title}</div><div class="news-meta">${a.site} · ${a.date}</div>`;
-    item.onclick=()=>window.open(a.url,'_blank');el.appendChild(item);
-  });
+function openLaunchModal(launch, scroll = true) {
+  openLaunch = launch;
+  document.getElementById('lm-name').textContent = launch.name;
+  document.getElementById('lm-sub').textContent = [launch.agency,launch.site].filter(Boolean).join(' · ');
+  const stats = [['Countdown',launchCountdown(launch)],['Rocket',launch.vehicle],['Agency',launch.agency],
+    ['Launch site',launch.site],['Status',launch.status],['Payload',launch.payload]];
+  document.getElementById('lm-stats').replaceChildren(...stats.map(([label,value]) => {
+    const stat = feedElement('div','modal-stat','');
+    stat.append(feedElement('div','lbl',label),feedElement('div','val',value || '—'));
+    if (label === 'Countdown') stat.lastChild.id = 'lm-countdown';
+    return stat;
+  }));
+  document.getElementById('lm-desc').textContent = launch.description || 'No description available.';
+  const link = document.getElementById('lm-btn');
+  link.replaceChildren();
+  if (launch.link) {
+    const anchor = feedElement('a','', 'Source details →');
+    anchor.href = launch.link;
+    link.append(anchor);
+  }
+  const modal = document.getElementById('launch-modal');
+  modal.classList.add('open');
+  if (scroll) modal.scrollIntoView({block:'nearest'});
 }
-fetchNews();setInterval(fetchNews,300000);
+function closeLaunchModal() {
+  openLaunch = undefined;
+  document.getElementById('launch-modal').classList.remove('open');
+}
+setInterval(() => {
+  if (document.hidden) return;
+  countdowns.forEach(({countdown,launch}) => { countdown.textContent = launchCountdown(launch); });
+  if (openLaunch) document.getElementById('lm-countdown').textContent = launchCountdown(openLaunch);
+},1000);
+pollFeed(fetchLaunches, 300000);
 
-// ── ISS Schedule ───────────────────────────────────
+// Space news
+let newsTime;
+async function fetchNews() {
+  const list = document.getElementById('news-list');
+  const status = document.getElementById('news-updated');
+  try {
+    const data = await getFeed('https://api.spaceflightnewsapi.net/v4/articles/?limit=6&format=json');
+    if (!Array.isArray(data.results)) throw new Error('Invalid news feed');
+    const articles = [];
+    for (const article of data.results) {
+      const url = feedLink(article.url);
+      if (!url || !article.title) continue;
+      const item = feedElement('a','news-item','');
+      item.href = url;
+      const date = new Date(article.published_at);
+      const metadata = [article.news_site, Number.isFinite(date.getTime()) ? date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : ''];
+      item.append(feedElement('div','news-title',article.title),feedElement('div','news-meta',metadata.filter(Boolean).join(' · ')));
+      articles.push(item);
+    }
+    if (data.results.length && !articles.length) throw new Error('No valid articles');
+    list.replaceChildren(...articles);
+    if (!articles.length) list.textContent = 'No recent articles reported.';
+    newsTime = Date.now();
+    status.textContent = feedStatus(newsTime, false);
+  } catch {
+    status.textContent = feedStatus(newsTime, true);
+    if (!newsTime) list.textContent = 'News feed unavailable.';
+  }
+}
+pollFeed(fetchNews, 300000);
+
 async function fetchISSSchedule(){
   const el=document.getElementById('iss-schedule');
   const now=new Date();
