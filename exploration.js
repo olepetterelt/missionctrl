@@ -72,7 +72,7 @@
 
   function roverCard(rover, preview = false) {
     return `<article class="exploration-item"${preview ? '' : ` id="${rover.id}"`}>
-      <h${preview ? 3 : 2}>${rover.name} · ${rover.title}</h${preview ? 3 : 2}>
+      <h3>${rover.name} · ${rover.title}</h3>
       <figure>
         <img src="${rover.photo}" alt="${rover.alt}" loading="lazy">
         <figcaption>${rover.camera} · ${date(rover.captured)} · Sol ${rover.sol} · ${rover.credit}</figcaption>

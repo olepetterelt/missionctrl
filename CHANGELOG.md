@@ -2,6 +2,11 @@
 
 ## 2026-11-25
 
+### Mars Rovers layout
+
+- Matched Mars Rovers to the Mars Weather and Missions page width, typography, section headings, and card surfaces. Featured stories use two columns on desktop, live grids use three, and all cards stack on phones.
+- Checked the heading hierarchy, feed containers, links, and responsive CSS against the existing page styles. Visual browser verification is pending. Use GitHub’s **Revert** action on the merged layout PR to roll back.
+
 ### Automatic mission and rover updates
 
 - Fixed two issues found in production. Curiosity now uses NASA’s raw image listing, and the browser requests Launch Library 2 events directly with a 15-minute session cache after the Cloudflare request returned a gateway error. Photojournal cards also use lead images embedded in NASA’s RSS articles. Checked the upstream response shapes and CORS headers. Final deployment verification is pending.
