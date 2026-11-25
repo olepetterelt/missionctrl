@@ -2,6 +2,12 @@
 
 ## 2026-11-25
 
+### Today in Space
+
+- Moved the latest headlines, next launch, and Tonight near you to the top of the dashboard so visitors can see the daily briefing before the detailed telemetry. The launch card shows a UTC launch window and a webcast link when the feed provides them.
+- Replaced randomly generated moonrise and moonset on Night Sky with approximate UTC horizon-crossing calculations for the selected location, with an explicit state when there is no crossing in the next 24 hours.
+- Checked script syntax, briefing card order, and Moon calculations at fixed dates and locations. Production verification is pending.
+
 ### ISS live camera
 
 - Configured the ISS camera to load with the dashboard and autoplay muted so visitors can start watching without pressing Play, subject to their browser's autoplay settings.
