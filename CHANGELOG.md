@@ -2,6 +2,12 @@
 
 ## 2026-11-25
 
+### Artemis
+
+- Added a dedicated Artemis tab and sitemap entry. The page compares Artemis I–V, documents completed-flight measurements and crews, and separates NASA's future targets from confirmed results.
+- Added mission milestones, published Artemis III docking and orbit figures, lunar landing plans, vehicle specifications, and primary-source links so readers can check the figures and follow changes to the campaign.
+- Checked navigation, page anchors, and the static route. Live deployment verification is pending.
+
 ### ISS live camera
 
 - Configured the ISS camera to load with the dashboard and autoplay muted so visitors can start watching without pressing Play, subject to their browser's autoplay settings.
