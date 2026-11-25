@@ -2,6 +2,12 @@
 
 ## 2026-11-25
 
+### Mars Rovers navigation and shared styles
+
+- Pinned Mars Rovers in the top bar outside the scrolling links and mobile menu. Updated the shared script URL on all pages so browsers fetch the same navigation.
+- Moved the common Mars Weather and Mars Rovers page styles into one stylesheet. Rover research uses a single list panel, and the raw image cards give photos more vertical space.
+- Checked shared navigation markup, the script version on all pages, stylesheet reuse, and the rover feed containers. Live browser verification is pending. Revert the merged PR through GitHub to roll back.
+
 ### Mars Rovers layout
 
 - Matched Mars Rovers to the Mars Weather and Missions page width, typography, section headings, and card surfaces. Featured stories use two columns on desktop, live grids use three, and all cards stack on phones.
