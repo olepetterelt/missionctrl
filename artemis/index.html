@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="Artemis I–V mission statistics, flight records, crew assignments, lunar landing plans, and spacecraft specifications.">
+<link rel="canonical" href="https://missionctrl.no/artemis/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Artemis mission stats — MissionCtrl.no</title>
+<script src="/_shared.js"></script>
+<style>
+  :root{color-scheme:dark;--bg:#0b0d12;--panel:#111318;--cell:#181b22;--line:#292d38;--text:#dde1ed;--muted:#a0a9bd;--blue:#75b7ff;--green:#55dc92;--amber:#f0bd57;--mono:'Courier New',monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 system-ui,sans-serif}
+  main{max-width:1320px;margin:auto;padding:24px 16px 40px}
+  h1,h2,h3,p{margin:0}
+  h1{font-size:clamp(26px,4vw,40px);letter-spacing:.02em}
+  h2{font-size:20px}
+  h3{font-size:15px}
+  a{color:var(--blue);text-underline-offset:3px}
+  a:focus-visible,summary:focus-visible,.table-scroll:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+  header p,.muted,.sources,dt{color:var(--muted)}
+  header p{margin-top:5px}
+  .jump{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+  .jump a{border:1px solid var(--line);border-radius:6px;padding:5px 10px;text-decoration:none}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:12px;scroll-margin-top:60px}
+  .panel h2{margin-bottom:6px}
+  .panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .status{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.05em}
+  .flown{color:var(--green)}
+  .planned{color:var(--amber)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:8px;margin:12px 0}
+  .stats div{background:var(--cell);border-radius:6px;padding:8px 10px}
+  dt{font-size:12px}
+  dd{margin:3px 0 0;font:700 15px/1.4 var(--mono)}
+  dd small{color:var(--muted);font-size:12px}
+  .table-scroll{overflow:auto}
+  table{border-collapse:collapse;width:100%;margin-top:8px}
+  caption{text-align:left;color:var(--muted)}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{color:var(--muted)}
+  .comparison{min-width:640px}
+  details{margin-top:12px;border-top:1px solid var(--line);padding-top:9px}
+  summary{cursor:pointer;color:var(--blue)}
+  li+li{margin-top:5px}
+  .sources{margin-top:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:6px 14px}
+  .hardware{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:12px;margin-top:10px}
+  .hardware article{background:var(--cell);border-radius:6px;padding:12px}
+  .hardware p{margin-top:5px}
+</style>
+</head>
+<body data-page="artemis">
+<main>
+  <header>
+    <h1>Artemis</h1>
+    <p>NASA’s lunar campaign by mission, crew, flight record, and vehicle.</p>
+    <p><small>Sources checked <time datetime="2026-11-25">25 Nov 2026</time>. Completed flights show reported results. Future flights show NASA targets.</small></p>
+  </header>
+  <nav class="jump" aria-label="Artemis mission sections">
+    <a href="#artemis-i">Artemis I</a><a href="#artemis-ii">Artemis II</a><a href="#artemis-iii">Artemis III</a>
+    <a href="#artemis-iv">Artemis IV</a><a href="#artemis-v">Artemis V</a><a href="#hardware">Hardware</a><a href="#references">References</a>
+  </nav>
+
+  <section class="panel" aria-labelledby="comparison-title">
+    <h2 id="comparison-title">Mission comparison</h2>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Artemis mission comparison table">
+      <table class="comparison">
+        <thead><tr><th scope="col">Mission</th><th scope="col">Launch</th><th scope="col">Profile</th><th scope="col">Crew</th><th scope="col">Duration</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><a href="#artemis-i">I</a></th><td>16 Nov 2022</td><td>Lunar distant retrograde orbit</td><td>Uncrewed</td><td>25 d 10 h 53 min</td><td class="flown">Completed</td></tr>
+          <tr><th scope="row"><a href="#artemis-ii">II</a></th><td>1 Apr 2026</td><td>Crewed lunar flyby</td><td>4</td><td>~9 d 1 h 32 min</td><td class="flown">Completed</td></tr>
+          <tr><th scope="row"><a href="#artemis-iii">III</a></th><td>2027 target</td><td>Low Earth orbit docking test</td><td>4 assigned</td><td>14 days planned</td><td class="planned">Planned</td></tr>
+          <tr><th scope="row"><a href="#artemis-iv">IV</a></th><td>Early 2028 target</td><td>First Artemis lunar landing</td><td>2 to the surface</td><td>~1 week on surface</td><td class="planned">Planned</td></tr>
+          <tr><th scope="row"><a href="#artemis-v">V</a></th><td>Late 2028 target</td><td>Second Artemis lunar landing</td><td>Pending</td><td>Pending</td><td class="planned">Planned</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sources"><a href="https://www.nasa.gov/humans-in-space/artemis/">NASA campaign overview</a><a href="https://www.nasa.gov/missions/artemis/nasa-strengthens-artemis-adds-mission-refines-overall-architecture/">NASA mission sequence</a></div>
+  </section>
+
+  <section class="panel" id="artemis-i" aria-labelledby="i-title">
+    <div class="panel-head"><h2 id="i-title">Artemis I</h2><span class="status flown">Completed</span></div>
+    <p>First integrated flight of SLS, Orion, and the launch and recovery ground systems. Orion entered distant retrograde lunar orbit and returned for a high-speed entry test.</p>
+    <dl class="stats">
+      <div><dt>Launch · LC-39B</dt><dd>16 Nov 2022<br><small>06:47 UTC</small></dd></div>
+      <div><dt>Pacific splashdown</dt><dd>11 Dec 2022<br><small>17:40 UTC</small></dd></div>
+      <div><dt>Mission elapsed time</dt><dd>25 d 10 h 53 min</dd></div>
+      <div><dt>Total distance traveled</dt><dd>~1.4M mi<br><small>~2.3M km</small></dd></div>
+      <div><dt>Maximum distance from Earth</dt><dd>268,563 mi<br><small>432,194 km</small></dd></div>
+      <div><dt>Closest lunar pass</dt><dd>80.6 mi<br><small>~130 km above surface</small></dd></div>
+      <div><dt>Entry speed</dt><dd>24,581 mph<br><small>~39,560 km/h</small></dd></div>
+      <div><dt>Orion test objectives</dt><dd>161<br><small>20 added during flight</small></dd></div>
+    </dl>
+    <details><summary>Flight milestones and engineering results</summary>
+      <ul>
+        <li><strong>21 Nov</strong> · The first powered lunar flyby put Orion on course for its distant orbit.</li>
+        <li><strong>25 Nov</strong> · Orion entered distant retrograde orbit.</li>
+        <li><strong>28 Nov</strong> · Orion reached its maximum distance from Earth.</li>
+        <li><strong>1 Dec</strong> · A departure burn put Orion on course for the second lunar flyby.</li>
+        <li><strong>5 Dec</strong> · The return powered flyby sent Orion back toward Earth.</li>
+        <li><strong>11 Dec</strong> · Orion used a skip entry and splashed down in the Pacific. Engineers later investigated unexpected heat-shield char loss and used the findings for crewed flights.</li>
+      </ul>
+    </details>
+    <div class="sources"><a href="https://www.nasa.gov/mission/artemis-i/">NASA flight results</a><a href="https://www.nasa.gov/reference/artemis-i-mission-timeline/">Flight-day timeline</a><a href="https://www.nasa.gov/artemis-i-press-kit/">Press kit</a></div>
+  </section>
+
+  <section class="panel" id="artemis-ii" aria-labelledby="ii-title">
+    <div class="panel-head"><h2 id="ii-title">Artemis II</h2><span class="status flown">Completed</span></div>
+    <p>First crewed Artemis flight. Orion <em>Integrity</em> tested life support and manual handling, looped around the Moon, and carried its four astronauts back to Earth.</p>
+    <dl class="stats">
+      <div><dt>Launch · LC-39B</dt><dd>1 Apr 2026<br><small>22:35 UTC</small></dd></div>
+      <div><dt>Pacific splashdown</dt><dd>11 Apr 2026 UTC<br><small>00:07 UTC · 10 Apr locally</small></dd></div>
+      <div><dt>Elapsed time from published times</dt><dd>~9 d 1 h 32 min</dd></div>
+      <div><dt>Total distance traveled</dt><dd>694,481 mi<br><small>~1.12 million km</small></dd></div>
+      <div><dt>Maximum distance from Earth</dt><dd>252,756 mi<br><small>~406,770 km · crewed record</small></dd></div>
+      <div><dt>Closest lunar approach</dt><dd>4,067 mi<br><small>~6,545 km above surface</small></dd></div>
+      <div><dt>Lunar flyby images</dt><dd>7,000+</dd></div>
+      <div><dt>Record margin over Apollo 13</dt><dd>4,101 mi<br><small>~6,600 km</small></dd></div>
+    </dl>
+    <table>
+      <caption>Artemis II crew</caption>
+      <thead><tr><th scope="col">Astronaut</th><th scope="col">Role</th><th scope="col">Agency</th></tr></thead>
+      <tbody><tr><th scope="row">Reid Wiseman</th><td>Commander</td><td>NASA</td></tr><tr><th scope="row">Victor Glover</th><td>Pilot</td><td>NASA</td></tr><tr><th scope="row">Christina Koch</th><td>Mission specialist</td><td>NASA</td></tr><tr><th scope="row">Jeremy Hansen</th><td>Mission specialist</td><td>CSA</td></tr></tbody>
+    </table>
+    <details><summary>Flight milestones and records</summary>
+      <ul>
+        <li><strong>1 Apr</strong> · SLS launched Orion from Kennedy Space Center. The crew tested spacecraft systems and practiced proximity operations in Earth orbit.</li>
+        <li><strong>2 Apr</strong> · Orion’s service module sent the spacecraft toward the Moon.</li>
+        <li><strong>6 Apr</strong> · The crew passed behind the Moon, observed the far side and a solar eclipse from Orion, and surpassed Apollo 13’s crewed distance record.</li>
+        <li><strong>10 Apr local time</strong> · Orion reentered and splashed down off California.</li>
+      </ul>
+    </details>
+    <div class="sources"><a href="https://www.nasa.gov/news-release/nasa-welcomes-record-setting-artemis-ii-moonfarers-back-to-earth/">NASA flight results</a><a href="https://www.nasa.gov/general/artemis-ii-mission-milestones-an-image-and-video-recap/">Image and video recap</a><a href="https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/">Lunar flyby log</a><a href="https://www.nasa.gov/artemis-ii-press-kit/">Press kit</a></div>
+  </section>
+
+  <section class="panel" id="artemis-iii" aria-labelledby="iii-title">
+    <div class="panel-head"><h2 id="iii-title">Artemis III</h2><span class="status planned">2027 target</span></div>
+    <p>Earth-orbit rehearsal for lunar landings. The plan calls for Orion to rendezvous and dock first with a Blue Moon test vehicle and then with a Starship test vehicle.</p>
+    <dl class="stats">
+      <div><dt>Planned duration</dt><dd>14 days</dd></div>
+      <div><dt>Crew aboard Orion</dt><dd>4 assigned</dd></div>
+      <div><dt>Planned vehicles and launches</dt><dd>3 spacecraft<br><small>3 separate launches</small></dd></div>
+      <div><dt>Blue Moon initial parking orbit</dt><dd>~273 mi<br><small>~440 km altitude</small></dd></div>
+      <div><dt>Orion initial orbit</dt><dd>18 × 1,122 mi<br><small>~29 × 1,806 km</small></dd></div>
+      <div><dt>Orion circular staging orbit</dt><dd>~345 mi<br><small>~555 km altitude</small></dd></div>
+      <div><dt>Blue Moon waiting capability</dt><dd>Up to 30 days<br><small>Planned capability</small></dd></div>
+    </dl>
+    <table>
+      <caption>Artemis III assigned crew</caption>
+      <thead><tr><th scope="col">Astronaut</th><th scope="col">Role</th><th scope="col">Agency</th></tr></thead>
+      <tbody><tr><th scope="row">Randy Bresnik</th><td>Commander</td><td>NASA</td></tr><tr><th scope="row">Luca Parmitano</th><td>Pilot</td><td>ESA</td></tr><tr><th scope="row">Andre Douglas</th><td>Mission specialist</td><td>NASA</td></tr><tr><th scope="row">Frank Rubio</th><td>Mission specialist</td><td>NASA</td></tr></tbody>
+    </table>
+    <details><summary>Planned sequence and test objectives</summary>
+      <ol>
+        <li>Blue Origin sends a Blue Moon Mark 2 test vehicle to low Earth orbit.</li>
+        <li>SLS launches the crew aboard Orion. The crew checks out Orion, raises its orbit, and approaches the waiting test vehicle.</li>
+        <li>Orion docks with Blue Moon to practice operations needed during a crewed lunar mission.</li>
+        <li>After Starship’s test vehicle launches, Orion undocks from Blue Moon and repeats rendezvous and docking with Starship.</li>
+        <li>Orion returns to Earth. The mission also supports research into how lunar samples might be handled on future flights.</li>
+      </ol>
+    </details>
+    <div class="sources"><a href="https://www.nasa.gov/missions/artemis/nasas-artemis-iii-mission-to-test-future-moon-lander-operations/">NASA flight plan and orbit figures</a><a href="https://www.nasa.gov/our-artemis-iii-crew/">Crew biographies</a><a href="https://www.nasa.gov/artemis-iii-news-and-updates/">Mission updates</a></div>
+  </section>
+
+  <section class="panel" id="artemis-iv" aria-labelledby="iv-title">
+    <div class="panel-head"><h2 id="iv-title">Artemis IV</h2><span class="status planned">Early 2028 target</span></div>
+    <p>NASA’s planned first Artemis landing near the Moon’s south pole. Two astronauts are expected to descend, conduct science and collect samples, then rejoin the rest of the crew for the return.</p>
+    <dl class="stats">
+      <div><dt>Surface crew</dt><dd>2 planned</dd></div>
+      <div><dt>Surface stay</dt><dd>~1 week</dd></div>
+      <div><dt>Candidate landing regions</dt><dd>9 identified<br><small>Final site pending</small></dd></div>
+      <div><dt>Lander selection</dt><dd>Readiness-based<br><small>SpaceX or Blue Origin</small></dd></div>
+      <div><dt>SLS upper-stage options</dt><dd>ICPS or Centaur V variant</dd></div>
+    </dl>
+    <details><summary>What NASA is evaluating</summary>
+      <ul>
+        <li>SpaceX is developing a Starship approach that refuels in Earth orbit. Blue Origin’s plan uses Earth-orbit transfer stages to send Blue Moon Mark 2 toward lunar orbit.</li>
+        <li>NASA is evaluating the current interim stage and a stretched version of Centaur V for SLS.</li>
+        <li>Axiom Space is developing lunar suits, including a lighter option intended for early surface sorties.</li>
+      </ul>
+    </details>
+    <div class="sources"><a href="https://www.nasa.gov/mission/artemis-iv/">NASA mission profile</a><a href="https://www.nasa.gov/event/artemis-iv/">Launch target and lander selection</a><a href="https://www.nasa.gov/missions/artemis/nasa-shares-plans-to-accelerate-artemis-return-to-moon/">November campaign update</a></div>
+  </section>
+
+  <section class="panel" id="artemis-v" aria-labelledby="v-title">
+    <div class="panel-head"><h2 id="v-title">Artemis V</h2><span class="status planned">Late 2028 target</span></div>
+    <p>NASA’s planned second Artemis landing. It is expected to start work toward a Moon base and help establish a roughly annual cadence for later surface missions.</p>
+    <dl class="stats">
+      <div><dt>Launch vehicle</dt><dd>Standardized SLS</dd></div>
+      <div><dt>Crew roster</dt><dd>Pending</dd></div>
+      <div><dt>Landing site and surface duration</dt><dd>Pending</dd></div>
+    </dl>
+    <div class="sources"><a href="https://www.nasa.gov/event/artemis-v/">NASA Artemis V launch schedule</a><a href="https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/">Updated lander contracts</a></div>
+  </section>
+
+  <section class="panel" id="hardware" aria-labelledby="hardware-title">
+    <h2 id="hardware-title">Flight hardware</h2>
+    <div class="hardware">
+      <article><h3>SLS Block 1</h3><p>322 ft (98 m) tall, about 5.75 million lb (2,608 t) fueled, up to 8.8 million lbf (39.1 MN) of thrust. Four RS-25 core engines and two solid boosters.</p><p><a href="https://www.nasa.gov/directorates/esdmd/space-launch-system-ftdku/">NASA SLS specifications</a></p></article>
+      <article><h3>Orion</h3><p>Designed for four crew and up to 21 days. The crew module returns to Earth. Its ESA-supplied service module provides power, propulsion, water, and air during flight.</p><p><a href="https://www.nasa.gov/wp-content/uploads/2023/02/orion-reference-guide-111022.pdf">Orion reference guide (PDF)</a></p></article>
+      <article><h3>Commercial lunar landers</h3><p>SpaceX’s Starship and Blue Origin’s Blue Moon Mark 2 are the two systems in NASA’s current lunar-lander development plans. Artemis III will test versions of both in Earth orbit.</p><p><a href="https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/">NASA lander development update</a></p></article>
+      <article><h3>Launch and recovery</h3><p>Exploration Ground Systems prepares SLS and Orion at Kennedy Space Center, supports launches from Pad 39B, and works with recovery teams to retrieve Orion after splashdown.</p><p><a href="https://www.nasa.gov/artemis-ii-press-kit/">NASA launch and recovery reference</a></p></article>
+    </div>
+  </section>
+
+  <section class="panel" id="references" aria-labelledby="references-title">
+    <h2 id="references-title">Track the campaign</h2>
+    <div class="sources"><a href="https://www.nasa.gov/humans-in-space/artemis/">NASA Artemis</a><a href="https://www.nasa.gov/live/">NASA Live</a><a href="https://www.nasa.gov/event-type/launch-schedule/">NASA launch schedule</a><a href="/launches/">MissionCtrl launch tracker</a><a href="/missions/">All missions</a><a href="/news/">Space news</a></div>
+  </section>
+</main>
+</body>
+</html>

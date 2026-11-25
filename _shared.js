@@ -2,6 +2,7 @@ const NAV_PAGES = [
   {id:'dashboard',   label:'Dashboard',    href:'/'},
   {id:'solar-system',label:'3D Solar System',href:'/solar-system/'},
   {id:'missions',    label:'Missions',     href:'/missions/'},
+  {id:'artemis',     label:'Artemis',      href:'/artemis/'},
   {id:'launches',    label:'Launches',     href:'/launches/'},
   {id:'starship',    label:'Starship',     href:'/starship/'},
   {id:'aurora',      label:'Aurora',       href:'/aurora/'},
