@@ -2,6 +2,14 @@
 
 ## 2026-11-25
 
+### Tonight near you
+
+- Added a location-based dashboard panel that combines planets above the horizon during darkness, the next moonrise in the coming 24 hours, the next predicted visible ISS pass, and an aurora estimate based on the latest valid Kp reading. It brings observing conditions together without adding a provider or requiring a new API key.
+- Updated the dashboard's astronomical calculations to support times other than the present, and reused the ISS pass request for the panel and the existing pass list. Times in the new panel are shown in UTC.
+- Verified the dashboard script parses and tested the panel with fixed dates, locations, and mocked ISS responses. Production verification is pending.
+
+### Dashboard feeds
+
 - Updated the dashboard ISS tracker to use the public Where the ISS at? feed with N2YO as a fallback. It shows measured values when available and labels retained coordinates as last known.
 - Updated launch countdowns to respect the provider’s status and time precision. An expired target time now shows “Awaiting update” until the provider confirms liftoff.
 - Replaced placeholder space-weather measurements with NOAA observations and timestamps. Local aurora visibility is labeled as an estimate.
