@@ -1,6 +1,8 @@
 (() => {
   const nasa = ['nasa.gov'];
   const eventHosts = ['thespacedevs.com'];
+  const eventUrl = 'https://ll.thespacedevs.com/2.3.0/events/upcoming/?limit=12&hide_recent_previous=true&ordering=date';
+  const eventCacheKey = 'missionctrl-exploration-events';
   const gallery = {
     curiosity: 'https://mars.nasa.gov/msl/multimedia/raw-images/',
     perseverance: 'https://mars.nasa.gov/mars2020/multimedia/raw-images/',
@@ -61,7 +63,8 @@
       const media = [...item.children].find(node =>
         (node.localName === 'content' || node.localName === 'thumbnail' || node.localName === 'enclosure') &&
         node.hasAttribute('url') && (!node.hasAttribute('type') || node.getAttribute('type').startsWith('image/')));
-      const embedded = markup(item.querySelector('description')?.textContent).querySelector('img');
+      const encoded = [...item.children].find(node => node.localName === 'encoded');
+      const embedded = markup(encoded?.textContent || item.querySelector('description')?.textContent).querySelector('img[src]');
       const image = safeLink(media?.getAttribute('url'), nasa) || safeLink(embedded?.getAttribute('src'), nasa);
       return source && title && Number.isFinite(published) ? [{ source, title, description, published, image }] : [];
     }).sort((a, b) => b.published - a.published);
@@ -100,7 +103,7 @@
       const sol = String(row.sol ?? '');
       const camera = summary(row.camera?.instrument || row.camera?.name || row.instrument || row.instrument_name ||
         (typeof row.camera === 'string' ? row.camera : ''), 64);
-      const meta = [camera, captured, /^\d{1,6}$/.test(sol) ? 'Sol ' + Number(sol).toLocaleString('en') : ''].filter(Boolean).join(' · ');
+      const meta = [camera, captured, /^\d{1,6}$/.test(sol) ? 'Sol ' + Number(sol).toLocaleString('en') : '', summary(row.credit, 100)].filter(Boolean).join(' · ');
       return [{ image, meta, stamp: Date.parse(date) || 0 }];
     }).sort((a, b) => b.stamp - a.stamp).slice(0, 3);
   }
@@ -127,6 +130,23 @@
     const response = await fetch('/exploration-feed?feed=' + feed, { signal: AbortSignal.timeout(10000) });
     if (!response.ok) throw new Error('Feed unavailable');
     return response[format]();
+  }
+
+  async function loadEvents() {
+    let cached;
+    try { cached = JSON.parse(sessionStorage.getItem(eventCacheKey)); } catch {}
+    if (Array.isArray(cached?.data?.results) && Date.now() - cached.storedAt < 900000) return eventsFrom(cached.data);
+    try {
+      const response = await fetch(eventUrl, { signal: AbortSignal.timeout(10000) });
+      if (!response.ok) throw new Error('Event feed unavailable');
+      const data = await response.json();
+      const upcoming = eventsFrom(data);
+      try { sessionStorage.setItem(eventCacheKey, JSON.stringify({ data, storedAt: Date.now() })); } catch {}
+      return upcoming;
+    } catch (error) {
+      if (Array.isArray(cached?.data?.results)) return eventsFrom(cached.data);
+      throw error;
+    }
   }
 
   function replace(target, items) {
@@ -157,7 +177,7 @@
     if (document.hidden) return;
     const tasks = [];
     if (events || spotlight) tasks.push((async () => {
-      const upcoming = eventsFrom(await load('events', 'json'));
+      const upcoming = await loadEvents();
       replace(events, upcoming.length ? upcoming.slice(0, 8).map(event => renderEvent(event)) :
         [element('p', 'The event feed has no upcoming listings.')]);
       const candidate = upcoming.find(event => event.timed);
@@ -182,7 +202,7 @@
       const featured = stories.find(story => story.image);
       const fallback = document.querySelector('#rover-spotlight');
       const curatedDate = Date.parse(fallback?.dataset.published);
-      if (featured && featured.published > curatedDate) {
+      if (featured && Math.floor(featured.published / 86400000) * 86400000 > curatedDate) {
         const item = render(featured, true);
         item.querySelector('img').addEventListener('error', () => updateSpotlight(dashboardPhoto, fallback, null), { once: true });
         updateSpotlight(dashboardPhoto, fallback, item);
