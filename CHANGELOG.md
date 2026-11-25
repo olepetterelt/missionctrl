@@ -7,6 +7,7 @@
 - Replaced placeholder space-weather measurements with NOAA observations and timestamps. Local aurora visibility is labeled as an estimate.
 - Replaced hard-coded news with direct article links from the existing feed. Failed refreshes retain the last successful results for the open session.
 - Paused dashboard feed polling in hidden tabs to reduce unnecessary requests.
+- Added a README explaining the project, how to preview it locally, which feeds require server-side keys, and how to roll back a release.
 
 Verified JavaScript syntax and exercised successful, invalid, and failed responses with mocked data. Live deployment verification is pending.
 
