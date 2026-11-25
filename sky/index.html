@@ -116,8 +116,9 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
       <div class="card">
         <div class="card-hd"><div class="dot" style="background:var(--green);"></div><span class="card-title">Sky Conditions</span></div>
         <div class="row"><span style="color:var(--muted2);">Moon phase</span><span id="moon-phase" class="badge b-green">—</span></div>
-        <div class="row"><span style="color:var(--muted2);">Moonrise</span><span class="mono" id="moonrise" style="font-size:12px;">—</span></div>
-        <div class="row"><span style="color:var(--muted2);">Moonset</span><span class="mono" id="moonset" style="font-size:12px;">—</span></div>
+        <div class="row"><span style="color:var(--muted2);">Next moonrise</span><span class="mono" id="moonrise" style="font-size:12px;">—</span></div>
+        <div class="row"><span style="color:var(--muted2);">Next moonset</span><span class="mono" id="moonset" style="font-size:12px;">—</span></div>
+        <div style="font-size:10px;color:var(--muted2);">Approximate Moon times over the next 24 hours, in UTC.</div>
         <div class="row"><span style="color:var(--muted2);">Sunset</span><span class="mono" id="sunset" style="font-size:12px;">—</span></div>
         <div class="row"><span style="color:var(--muted2);">Sunrise</span><span class="mono" id="sunrise" style="font-size:12px;">—</span></div>
         <div class="row"><span style="color:var(--muted2);">Astro twilight</span><span class="mono" id="astro-twilight" style="font-size:12px;">—</span></div>
@@ -150,13 +151,12 @@ window.onLocationReady = function(loc) {
   drawSky();
 };
 
-function jde(d){return 2451545.0+(d-new Date(2000,0,1,12))/86400000;}
+function jde(d){return d.getTime()/86400000+2440587.5;}
 function lstNow(jd){
   const T=(jd-2451545.0)/36525;
   let g=100.4606184+36000.7700536*T+0.000387933*T*T;
   g=((g%360)+360)%360;
-  const n=new Date();
-  const ut=(n.getUTCHours()+n.getUTCMinutes()/60+n.getUTCSeconds()/3600)*15;
+  const ut=((jd+0.5)%1)*360;
   return((g+ut+userLon)%360)*DEG;
 }
 function sunPos(jd){
@@ -455,6 +455,27 @@ async function computePasses(){
   }
 }
 
+function moonHorizonEvents(start, latitude){
+  const step=5*60000;
+  function altitude(timestamp){
+    const jd=jde(new Date(timestamp));
+    const {ra,dec}=moonPos(jd);
+    return altAz(ra,dec,lstNow(jd),latitude).alt;
+  }
+  let previous=altitude(start), rise, set;
+  for(let elapsed=step;elapsed<=24*3600000;elapsed+=step){
+    const time=start+elapsed, current=altitude(time);
+    if ((previous<0)!==(current<0)){
+      const crossing=time-step-step*previous/(current-previous);
+      if(current>=0)rise??=crossing;
+      else set??=crossing;
+      if(rise!==undefined && set!==undefined)break;
+    }
+    previous=current;
+  }
+  return {rise,set};
+}
+
 function computeSunMoon(){
   // Simplified rise/set using latitude
   const lat=userLat;
@@ -477,8 +498,12 @@ function computeSunMoon(){
     document.getElementById('sunset').textContent='—';
     document.getElementById('astro-twilight').textContent='—';
   }
-  document.getElementById('moonrise').textContent='~'+String(Math.floor(Math.random()*24)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0');
-  document.getElementById('moonset').textContent='~'+String(Math.floor(Math.random()*24)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0');
+  const {rise,set}=moonHorizonEvents(now.getTime(),lat*DEG);
+  const moonTime=new Intl.DateTimeFormat('en-GB',{
+    day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC',timeZoneName:'short'
+  });
+  document.getElementById('moonrise').textContent=rise===undefined ? 'None in the next 24 hours' : moonTime.format(rise);
+  document.getElementById('moonset').textContent=set===undefined ? 'None in the next 24 hours' : moonTime.format(set);
 }
 
 // Initial draw with default location
@@ -486,6 +511,7 @@ fetchISS();
 drawSky();
 computePasses();
 computeSunMoon();
+setInterval(computeSunMoon,60000);
 setInterval(()=>{fetchISS();drawSky();},10000);
 window.addEventListener('resize',drawSky);
 </script>
