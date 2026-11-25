@@ -13,7 +13,6 @@ const NAV_PAGES = [
   {id:'satellites',  label:'Satellites',   href:'/satellites/'},
   {id:'reentry',     label:'Reentry',      href:'/reentry/'},
   {id:'sky',         label:'Night Sky',    href:'/sky/'},
-  {id:'mars-rovers', label:'Mars Rovers', href:'/mars-rovers/'},
   {id:'mars',        label:'Mars Weather', href:'/mars/'},
   {id:'astronauts',  label:'Astronauts',   href:'/astronauts/'},
   {id:'rockets',     label:'Rockets',      href:'/rockets/'},
@@ -54,6 +53,8 @@ const NAV_CSS = `
 }
 .nav-link:hover  { color: #dde1ed; background: rgba(255,255,255,0.05); }
 .nav-link.active { color: #4a9eff; background: rgba(74,158,255,0.1); }
+.nav-rovers { flex: 0 0 auto; margin-right: 4px; color: #a0a9bd; }
+.nav-link:focus-visible { outline: 2px solid #4a9eff; outline-offset: -2px; }
 .nav-right {
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0; margin-left: 10px;
@@ -162,7 +163,16 @@ const MOBILE_CSS = `
   .nav-hamburger.open span:nth-child(2) { opacity: 0; }
   .nav-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4px,-4px); }
   .nav-clock { display: none; }
+  .nav-right { flex: 0 1 auto; min-width: 0; margin-left: auto; }
+  .nav-loc-btn { min-width: 0; }
   .nav-loc-btn { max-width: 100px; font-size: 9px; }
+}
+@media (max-width: 360px) {
+  .nav-inner { padding: 0 8px; }
+  .nav-logo { margin-right: 4px; gap: 4px; }
+  .nav-logo-text, .nav-logo-sub { font-size: 11px; }
+  .nav-rovers { padding-inline: 5px; }
+  .nav-right .nav-dot { display: none; }
 }
 @media (min-width: 769px) { .nav-hamburger { display: none; } }
 `;
@@ -296,6 +306,7 @@ function injectNav() {
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="toggleMobNav()">
       <span></span><span></span><span></span>
     </button>
+    <a href="/mars-rovers/" class="nav-link nav-rovers${page === 'mars-rovers' ? ' active' : ''}"${page === 'mars-rovers' ? ' aria-current="page"' : ''}>Mars Rovers</a>
     <div class="nav-links">
       ${NAV_PAGES.map(p => `<a href="${p.href}" class="nav-link${p.id === page ? ' active' : ''}">${p.label}</a>`).join('')}
     </div>
