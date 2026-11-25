@@ -7,3 +7,9 @@
 
 /_shared.js
   Cache-Control: public, max-age=0, must-revalidate
+
+/exploration-live.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/exploration.js
+  Cache-Control: public, max-age=0, must-revalidate

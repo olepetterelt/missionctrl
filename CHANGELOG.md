@@ -2,6 +2,13 @@
 
 ## 2026-11-25
 
+### Automatic mission and rover updates
+
+- Connected the Mission Watchlist and dashboard to public Launch Library 2 events, including published webcasts and date precision. Connected Mars Rovers to NASA research updates, Photojournal releases, and raw image feeds, with newer rover photos eligible for the dashboard.
+- Added a cached Cloudflare Pages Function to refresh public feeds without new keys. Visible pages refresh every 15 minutes and keep the last successful results during feed failures. Featured editorial stories remain available as fallbacks.
+- Verified JavaScript syntax and tested route selection, caching headers, malformed responses, event dates and webcasts, rover metadata, failure retention, and hidden-tab behavior with fixtures. Live upstream payloads, deployment, and browser layout still need verification.
+- Close the automation PR before merge or use GitHub’s **Revert** action after merge.
+
 ### Mission Watchlist and Mars Rovers
 
 - Added a watchlist for Moon and Mars, deep space, commercial spaceflight, and space telescope milestones. The dashboard highlights the next dated event, with a webcast when published. Passed windows await an official update.
