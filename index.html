@@ -236,6 +236,20 @@ canvas{display:block;}
   </div>
 </div>
 
+<div class="row">
+  <section class="card" aria-labelledby="tonight-title">
+    <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><h2 class="card-title" id="tonight-title" style="margin:0;">Tonight near you</h2><a href="/sky/" style="margin-left:auto;color:var(--blue);">Night Sky →</a></div>
+    <p class="lbl" id="tonight-location">Set a location to see local observing conditions.</p>
+    <button type="button" id="tonight-location-button" onclick="openLocOverlay()">Set location</button>
+    <dl class="stat-grid" id="tonight-results" style="display:none;">
+      <div class="stat-cell"><dt class="lbl">Planets during darkness</dt><dd class="val" id="tonight-planets" style="margin:0;"></dd></div>
+      <div class="stat-cell"><dt class="lbl">Next moonrise</dt><dd class="val" id="tonight-moon" style="margin:0;"></dd></div>
+      <div class="stat-cell"><dt class="lbl">Next visible ISS pass</dt><dd class="val" id="tonight-iss" style="margin:0;">Loading…</dd></div>
+      <div class="stat-cell"><dt class="lbl">Aurora conditions now</dt><dd class="val" id="tonight-aurora" style="margin:0;"></dd></div>
+    </dl>
+  </section>
+</div>
+
 <!-- Row 2: ISS world map (wide) + Crew -->
 <div class="row r21">
   <div class="card">
@@ -404,7 +418,7 @@ window.onLocationReady=function(loc){
   const hint=document.getElementById('aurora-hint');
   if(hint){const al=Math.abs(loc.lat);const t=al>=67?1:al>=63?2:al>=60?4:al>=55?5:al>=50?6:7;
     hint.textContent=`Kp≥${t} = possible from ${name} · Kp≥${Math.min(9,t+2)} = high chance`;}
-  drawMap();drawSky();renderAurora();computeISSPasses();renderMeteors();
+  drawMap();drawSky();renderTonight();renderAurora();computeISSPasses();renderMeteors();
 };
 
 // ── Clock ──────────────────────────────────────────
@@ -580,13 +594,12 @@ function fetchCrew(){
 fetchCrew();setInterval(fetchCrew,60000);
 
 // ── Astronomy math ─────────────────────────────────
-function jde(d){return 2451545.0+(d-new Date(2000,0,1,12))/86400000;}
+function jde(d){return d.getTime()/86400000+2440587.5;}
 function lstNow(jd){
   const T=(jd-2451545.0)/36525;
   let g=100.4606184+36000.7700536*T+0.000387933*T*T;
   g=((g%360)+360)%360;
-  const n=new Date();
-  const ut=(n.getUTCHours()+n.getUTCMinutes()/60+n.getUTCSeconds()/3600)*15;
+  const ut=(((jd+0.5)%1+1)%1)*360;
   return((g+ut+LON_DEG)%360)*DEG;
 }
 function sunPos(jd){
@@ -612,8 +625,12 @@ function planetRaDec(jd,pl){
   let E=M;for(let i=0;i<5;i++)E=M+p.e*Math.sin(E);
   const v=2*Math.atan2(Math.sqrt(1+p.e)*Math.sin(E/2),Math.sqrt(1-p.e)*Math.cos(E/2));
   const r=p.a*(1-p.e*Math.cos(E));
-  const sun=sunPos(jd),xs=r*Math.cos(Lp+v-wp)+Math.cos(sun.ra),ys=r*Math.sin(Lp+v-wp)+Math.sin(sun.ra);
-  return{ra:Math.atan2(ys,xs),dec:0};
+  const sun=sunPos(jd),eps=23.439*DEG;
+  const sunLongitude=Math.atan2(Math.sin(sun.ra)/Math.cos(eps),Math.cos(sun.ra));
+  const xs=r*Math.cos(v+wp)+Math.cos(sunLongitude),ys=r*Math.sin(v+wp)+Math.sin(sunLongitude);
+  const longitude=Math.atan2(ys,xs);
+  return{ra:Math.atan2(Math.cos(eps)*Math.sin(longitude),Math.cos(longitude)),
+    dec:Math.asin(Math.sin(eps)*Math.sin(longitude))};
 }
 function altAz(ra,dec,lst,lat){
   const ha=lst-ra,sinA=Math.sin(dec)*Math.sin(lat)+Math.cos(dec)*Math.cos(lat)*Math.cos(ha);
@@ -621,6 +638,45 @@ function altAz(ra,dec,lst,lat){
   const cosZ=(Math.sin(dec)-Math.sin(alt)*Math.sin(lat))/(Math.cos(alt)*Math.cos(lat)||0.001);
   const az0=Math.acos(Math.max(-1,Math.min(1,cosZ)));
   return{alt,az:Math.sin(ha)>0?(2*Math.PI-az0):az0};
+}
+
+function observingTime(timestamp){
+  return new Intl.DateTimeFormat('en-GB',{
+    weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC',timeZoneName:'short'
+  }).format(timestamp);
+}
+
+function renderTonight(){
+  const location=window.SITE_LOC;
+  if(!location)return;
+  document.getElementById('tonight-results').style.removeProperty('display');
+  document.getElementById('tonight-location-button').hidden=true;
+  document.getElementById('tonight-location').textContent=(location.name || 'Selected location')+' · Approximate sky positions and times (UTC)';
+  const now=Date.now(), step=10*60000;
+  const planets=['Mercury','Venus','Mars','Jupiter','Saturn'];
+  const visible=new Set();
+  let darkStarted=false, darkEnded=false, moonrise, previousMoon;
+  for(let elapsed=0;elapsed<=24*3600000;elapsed+=step){
+    const time=now+elapsed, jd=jde(new Date(time)), lst=lstNow(jd);
+    const altitude=({ra,dec})=>altAz(ra,dec,lst,LAT).alt/DEG;
+    const moon=altitude(moonPos(jd));
+    if(moonrise===undefined && previousMoon<0 && moon>=0){
+      moonrise=time-step+step*(-previousMoon)/(moon-previousMoon);
+    }
+    previousMoon=moon;
+    if(darkEnded)continue;
+    if(altitude(sunPos(jd))>-6){
+      darkEnded=darkStarted;
+      continue;
+    }
+    darkStarted=true;
+    planets.forEach(planet=>{
+      if(altitude(planetRaDec(jd,planet))>=10)visible.add(planet);
+    });
+  }
+  document.getElementById('tonight-planets').textContent=visible.size ? planets.filter(planet=>visible.has(planet)).join(', ')
+    : darkStarted ? 'None reach 10° above the horizon' : 'No civil darkness in the next 24 hours';
+  document.getElementById('tonight-moon').textContent=moonrise===undefined ? 'No rise in the next 24 hours' : observingTime(moonrise);
 }
 
 const STARS=[
@@ -832,13 +888,20 @@ function closeSkyModal(){document.getElementById('sky-modal').classList.remove('
 // ── ISS Passes ─────────────────────────────────────
 async function computeISSPasses(){
   const el=document.getElementById('pass-list');
-  if(!window.SITE_LOC){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Set your location to see passes</div>';return;}
+  const summary=document.getElementById('tonight-iss');
+  const location=window.SITE_LOC;
+  if(!location){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Set your location to see passes</div>';return;}
+  summary.textContent='Loading…';
   el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Loading passes…</div>';
   try{
-    const r=await fetch(`/n2yo?type=passes&id=25544&lat=${LAT_DEG}&lon=${LON_DEG}&alt=100&days=7&minEl=10`);
-    const d=await r.json();
-    const passes=d.passes;
-    if(!passes?.length){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">No visible passes in next 7 days.</div>';return;}
+    const d=await getFeed(`/n2yo?type=passes&id=25544&lat=${location.lat}&lon=${location.lon}&alt=100&days=7&minEl=10`);
+    if(window.SITE_LOC!==location)return;
+    if(!Array.isArray(d.passes))throw new Error('Pass data unavailable');
+    const passes=d.passes.filter(p=>Number.isFinite(p.startUTC) && p.startUTC*1000>Date.now() &&
+      Number.isFinite(p.endUTC) && p.endUTC>p.startUTC && Number.isFinite(p.maxEl))
+      .sort((a,b)=>a.startUTC-b.startUTC);
+    summary.textContent=passes.length ? observingTime(passes[0].startUTC*1000)+' · max '+passes[0].maxEl+'°' : 'None in the next 7 days';
+    if(!passes.length){el.innerHTML='<div style="color:var(--muted2);font-size:11px;">No visible passes in next 7 days.</div>';return;}
     el.innerHTML='';
     passes.slice(0,5).forEach(p=>{
       const start=new Date(p.startUTC*1000);
@@ -851,10 +914,13 @@ async function computeISSPasses(){
       el.appendChild(item);
     });
   }catch(e){
+    if(window.SITE_LOC!==location)return;
+    summary.textContent='Pass data unavailable';
     el.innerHTML='<div style="color:var(--muted2);font-size:11px;">Pass data unavailable.</div>';
   }
 }
 computeISSPasses();
+setInterval(renderTonight,60000);
 
 // ── Aurora ─────────────────────────────────────────
 let kpReading, kpStale = true, windReading;
@@ -866,14 +932,17 @@ function observationTime(value) {
 
 function renderAurora() {
   const visibility = document.getElementById('aurora-vis');
+  const summary = document.getElementById('tonight-aurora');
   if (!kpReading || kpStale || !window.SITE_LOC) {
     visibility.textContent = !kpReading || kpStale ? 'Unavailable' : 'Set your location';
+    summary.textContent = visibility.textContent;
     return;
   }
   const lat = Math.abs(LAT_DEG);
   const threshold = lat >= 67 ? 1 : lat >= 63 ? 2 : lat >= 60 ? 4 : lat >= 55 ? 5 : lat >= 50 ? 6 : 7;
   const kp = kpReading.value;
   visibility.textContent = (kp >= threshold + 1 ? 'High chance' : kp >= threshold ? 'Possible' : 'Unlikely') + ' (estimate)';
+  summary.textContent = visibility.textContent + ' · Kp ' + kp.toFixed(1);
 }
 
 async function fetchAurora() {
