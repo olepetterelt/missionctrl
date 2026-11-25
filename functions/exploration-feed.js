@@ -1,8 +1,7 @@
 const sources = {
-  events: ['https://ll.thespacedevs.com/2.3.0/events/upcoming/?limit=12&hide_recent_previous=true&ordering=date', 'application/json', 900],
   research: ['https://science.nasa.gov/blogs/mars/feed/', 'application/rss+xml', 1800],
   photos: ['https://science.nasa.gov/feed/photojournal/gallery/mars/', 'application/rss+xml', 1800],
-  curiosity: ['https://mars.nasa.gov/api/v1/raw_image_items/msl/latest/', 'application/json', 1800],
+  curiosity: ['https://mars.nasa.gov/api/v1/raw_image_items/?order=sol+desc&per_page=6&page=0&mission=msl', 'application/json', 1800],
   perseverance: ['https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&ver=1.2&num=12&page=0&order=sol+desc', 'application/json', 1800],
 };
 

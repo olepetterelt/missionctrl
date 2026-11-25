@@ -4,6 +4,8 @@
 
 ### Automatic mission and rover updates
 
+- Fixed two issues found in production. Curiosity now uses NASA’s raw image listing, and the browser requests Launch Library 2 events directly with a 15-minute session cache after the Cloudflare request returned a gateway error. Photojournal cards also use lead images embedded in NASA’s RSS articles. Checked the upstream response shapes and CORS headers. Final deployment verification is pending.
+
 - Connected the Mission Watchlist and dashboard to public Launch Library 2 events, including published webcasts and date precision. Connected Mars Rovers to NASA research updates, Photojournal releases, and raw image feeds, with newer rover photos eligible for the dashboard.
 - Added a cached Cloudflare Pages Function to refresh public feeds without new keys. Visible pages refresh every 15 minutes and keep the last successful results during feed failures. Featured editorial stories remain available as fallbacks.
 - Verified JavaScript syntax and tested route selection, caching headers, malformed responses, event dates and webcasts, rover metadata, failure retention, and hidden-tab behavior with fixtures. Live upstream payloads, deployment, and browser layout still need verification.
