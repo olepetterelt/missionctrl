@@ -2,6 +2,11 @@
 
 ## 2026-11-25
 
+### ISS live camera
+
+- Replaced the private YouTube video with the public feed embedded on NASA's ISS Earth-viewing page. Added links to NASA's camera page and station views playlist so viewers can try the official sources if the dashboard player is unavailable.
+- Removed the crew-schedule playback claim because the feed comes from an external camera. Verified NASA's embed source and confirmed that YouTube identifies the replacement as NASA's public stream.
+
 ### Tonight near you
 
 - Added a location-based dashboard panel that combines planets above the horizon during darkness, the next moonrise in the coming 24 hours, the next predicted visible ISS pass, and an aurora estimate based on the latest valid Kp reading. It brings observing conditions together without adding a provider or requiring a new API key.
