@@ -13,6 +13,7 @@ const NAV_PAGES = [
   {id:'satellites',  label:'Satellites',   href:'/satellites/'},
   {id:'reentry',     label:'Reentry',      href:'/reentry/'},
   {id:'sky',         label:'Night Sky',    href:'/sky/'},
+  {id:'mars-rovers', label:'Mars Rovers', href:'/mars-rovers/'},
   {id:'mars',        label:'Mars Weather', href:'/mars/'},
   {id:'astronauts',  label:'Astronauts',   href:'/astronauts/'},
   {id:'rockets',     label:'Rockets',      href:'/rockets/'},

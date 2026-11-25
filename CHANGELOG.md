@@ -2,6 +2,13 @@
 
 ## 2026-11-25
 
+### Mission Watchlist and Mars Rovers
+
+- Added a watchlist for Moon and Mars, deep space, commercial spaceflight, and space telescope milestones. The dashboard highlights the next dated event, with a webcast when published. Passed windows await an official update.
+- Added Curiosity and Perseverance photos with camera, capture date, sol, and credit, plus dated research summaries and links to NASA originals, raw galleries, and mission updates. Added a dashboard photo and cross-links with Mars Weather so visitors can follow rover science.
+- Updated Ingenuity descriptions to reflect the end of its 72-flight mission. Added Mars Rovers to shared navigation and the sitemap.
+- Verified JavaScript syntax, milestone selection and expiry, rover captions and dashboard links, and both NASA image URLs. Browser and production checks are pending. Close the PR before merge or use the GitHub **Revert** action after merge.
+
 ### Artemis
 
 - Versioned the navigation script on the dashboard, Missions, and Artemis so visitors get the new Artemis tab even if their browser cached the previous menu. Added a revalidation policy for the shared script.
@@ -9,6 +16,11 @@
 - Added a dedicated Artemis tab and sitemap entry. The page compares Artemis I–V, documents completed-flight measurements and crews, and separates NASA's future targets from confirmed results.
 - Added mission milestones, published Artemis III docking and orbit figures, lunar landing plans, vehicle specifications, and primary-source links so readers can check the figures and follow changes to the campaign.
 - Checked navigation, page anchors, and the static route. Live deployment verification is pending.
+
+### Today in Space
+
+- Moved the latest headlines, next launch, and Tonight near you to the top of the dashboard so visitors can see the daily briefing before the detailed telemetry. The launch card shows a UTC launch window and a webcast link when the feed provides them.
+- Checked dashboard script syntax and briefing card rendering. Production verification is pending.
 
 ### ISS live camera
 
