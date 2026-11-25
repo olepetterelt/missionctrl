@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/nasa", "/n2yo"],
+  "include": ["/nasa", "/n2yo", "/exploration-feed"],
   "exclude": []
 }

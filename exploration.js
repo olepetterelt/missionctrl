@@ -109,12 +109,19 @@
     const next = milestones
       .filter(milestone => milestone.start && !expired(milestone) && milestone.status !== 'Completed')
       .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0];
-    if (next) spotlight.innerHTML = milestoneCard(next, true);
+    if (next) {
+      spotlight.dataset.start = next.start;
+      spotlight.dataset.end = next.end;
+      spotlight.innerHTML = milestoneCard(next, true);
+    }
   }
 
   const marsPhoto = document.querySelector('#rover-spotlight');
   if (marsPhoto) {
     const featured = [...rovers].sort((a, b) => b.published.localeCompare(a.published))[0];
-    if (featured) marsPhoto.innerHTML = roverCard(featured, true);
+    if (featured) {
+      marsPhoto.dataset.published = featured.published;
+      marsPhoto.innerHTML = roverCard(featured, true);
+    }
   }
 })();
