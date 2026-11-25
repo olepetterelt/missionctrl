@@ -179,11 +179,62 @@ canvas{display:block;}
   #sky-canvas{height:280px!important;}
   .modal-grid{grid-template-columns:1fr 1fr!important;}
 }
+#briefing-title{font-size:22px;margin:0 0 12px;letter-spacing:.02em;}
+.briefing-grid{grid-template-columns:1.2fr 1fr 1fr;}
+.briefing-grid .card{min-width:0;}
+.briefing-webcast{display:inline-block;color:var(--blue);margin-top:6px;}
+.briefing-grid .launch-item{padding:12px 0;}
+@media(max-width:900px){.briefing-grid{grid-template-columns:1fr;}}
 </style>
-<script src="/_shared.js?v=20261125-artemis"></script>
+<script src="/_shared.js?v=20261125-exploration"></script>
+<link rel="stylesheet" href="/exploration.css">
+<script defer src="/exploration.js"></script>
 </head>
 <body data-page="dashboard">
 <div class="dash">
+
+<section aria-labelledby="briefing-title">
+<h1 id="briefing-title">Today in Space</h1>
+<div class="row briefing-grid">
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">Top stories</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/news/" style="color:var(--blue);text-decoration:none;">More →</a></span></div>
+    <div class="lbl" id="news-updated"></div><div id="news-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><span class="card-title">Next launch</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/launches/" style="color:var(--blue);text-decoration:none;">All launches →</a></span></div>
+    <div class="lbl" id="launch-updated"></div><div id="launch-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
+    <div class="imodal" id="launch-modal">
+      <button class="close-btn" onclick="closeLaunchModal()">✕</button>
+      <div style="font-size:14px;font-weight:500;margin-bottom:3px;" id="lm-name"></div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;" id="lm-sub"></div>
+      <div class="modal-grid" id="lm-stats"></div>
+      <div class="modal-body" id="lm-desc"></div>
+      <div id="lm-btn" style="margin-top:8px;"></div>
+    </div>
+  </div>
+  <section class="card" aria-labelledby="tonight-title">
+    <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><h2 class="card-title" id="tonight-title" style="margin:0;">Tonight near you</h2><a href="/sky/" style="margin-left:auto;color:var(--blue);">Night Sky →</a></div>
+    <p class="lbl" id="tonight-location">Set a location to see local observing conditions.</p>
+    <button type="button" id="tonight-location-button" onclick="openLocOverlay()">Set location</button>
+    <dl class="stat-grid" id="tonight-results" style="display:none;">
+      <div class="stat-cell"><dt class="lbl">Planets during darkness</dt><dd class="val" id="tonight-planets" style="margin:0;"></dd></div>
+      <div class="stat-cell"><dt class="lbl">Next moonrise</dt><dd class="val" id="tonight-moon" style="margin:0;"></dd></div>
+      <div class="stat-cell"><dt class="lbl">Next visible ISS pass</dt><dd class="val" id="tonight-iss" style="margin:0;">Loading…</dd></div>
+      <div class="stat-cell"><dt class="lbl">Aurora conditions now</dt><dd class="val" id="tonight-aurora" style="margin:0;"></dd></div>
+    </dl>
+  </section>
+</div>
+<div class="exploration-grid">
+  <section class="card" aria-labelledby="milestone-heading">
+    <h2 class="card-title" id="milestone-heading">Next mission milestone</h2>
+    <div id="milestone-spotlight"><p><a href="/missions/#watchlist">See the Mission Watchlist</a> for the latest published schedules.</p></div>
+  </section>
+  <section class="card" aria-labelledby="rover-heading">
+    <h2 class="card-title" id="rover-heading">From Mars</h2>
+    <div id="rover-spotlight"><p><a href="/mars-rovers/">Browse rover photos and science</a>.</p></div>
+  </section>
+</div>
+</section>
 
 <!-- Row 1: Clock · ISS stats · Solar · Aurora quick stats -->
 <div class="row r4">
@@ -236,20 +287,6 @@ canvas{display:block;}
   </div>
 </div>
 
-<div class="row">
-  <section class="card" aria-labelledby="tonight-title">
-    <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><h2 class="card-title" id="tonight-title" style="margin:0;">Tonight near you</h2><a href="/sky/" style="margin-left:auto;color:var(--blue);">Night Sky →</a></div>
-    <p class="lbl" id="tonight-location">Set a location to see local observing conditions.</p>
-    <button type="button" id="tonight-location-button" onclick="openLocOverlay()">Set location</button>
-    <dl class="stat-grid" id="tonight-results" style="display:none;">
-      <div class="stat-cell"><dt class="lbl">Planets during darkness</dt><dd class="val" id="tonight-planets" style="margin:0;"></dd></div>
-      <div class="stat-cell"><dt class="lbl">Next moonrise</dt><dd class="val" id="tonight-moon" style="margin:0;"></dd></div>
-      <div class="stat-cell"><dt class="lbl">Next visible ISS pass</dt><dd class="val" id="tonight-iss" style="margin:0;">Loading…</dd></div>
-      <div class="stat-cell"><dt class="lbl">Aurora conditions now</dt><dd class="val" id="tonight-aurora" style="margin:0;"></dd></div>
-    </dl>
-  </section>
-</div>
-
 <!-- Row 2: ISS world map (wide) + Crew -->
 <div class="row r21">
   <div class="card">
@@ -295,20 +332,8 @@ canvas{display:block;}
   </div>
 </div>
 
-<!-- Row 4: Launches · Asteroids -->
-<div class="row r2">
-  <div class="card">
-    <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><span class="card-title">Upcoming Launches</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/launches/" style="color:var(--blue);text-decoration:none;">All launches →</a></span></div>
-    <div class="lbl" id="launch-updated"></div><div id="launch-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
-    <div class="imodal" id="launch-modal">
-      <button class="close-btn" onclick="closeLaunchModal()">✕</button>
-      <div style="font-size:14px;font-weight:500;margin-bottom:3px;" id="lm-name"></div>
-      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;" id="lm-sub"></div>
-      <div class="modal-grid" id="lm-stats"></div>
-      <div class="modal-body" id="lm-desc"></div>
-      <div id="lm-btn" style="margin-top:8px;"></div>
-    </div>
-  </div>
+<!-- Near-Earth Asteroids -->
+<div class="row">
   <div class="card">
     <div class="card-hd"><div class="dot" style="background:var(--red)"></div><span class="card-title">Near-Earth Asteroid Approaches</span></div>
     <div id="asteroid-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
@@ -346,15 +371,11 @@ canvas{display:block;}
   </div>
 </div>
 
-<!-- Row 6: ISS Schedule · News -->
-<div class="row r12">
+<!-- ISS Mission Schedule -->
+<div class="row">
   <div class="card">
     <div class="card-hd"><div class="dot" style="background:var(--teal)"></div><span class="card-title">ISS Mission Schedule</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;" id="iss-schedule-updated"></span></div>
     <div id="iss-schedule"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div class="dot" style="background:var(--blue)"></div><span class="card-title">Space News</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;"><a href="/news/" style="color:var(--blue);text-decoration:none;">More →</a></span></div>
-    <div class="lbl" id="news-updated"></div><div id="news-list"><div style="color:var(--muted2);font-size:11px;">Loading…</div></div>
   </div>
 </div>
 
@@ -1209,12 +1230,14 @@ async function fetchLaunches() {
     const launches = data.results.map(row => ({
       id: row.id, name: row.name, vehicle: row.rocket?.configuration?.name,
       net: Date.parse(row.net), precision: row.net_precision?.name,
+      windowStart: Date.parse(row.window_start), windowEnd: Date.parse(row.window_end),
       status: row.status?.abbrev || 'TBD', agency: row.launch_service_provider?.name,
       site: row.pad?.location?.name, payload: row.mission?.name,
-      description: row.mission?.description, link: feedLink(row.url)
+      description: row.mission?.description, link: feedLink(row.url),
+      webcast: (Array.isArray(row.vid_urls) ? row.vid_urls : []).map(video => feedLink(video?.url)).find(Boolean)
     }));
     countdowns = [];
-    list.replaceChildren(...launches.map(launch => {
+    list.replaceChildren(...launches.slice(0,1).map(launch => {
       const button = feedElement('button','launch-item','');
       button.type = 'button';
       const name = feedElement('span','ln',launch.name);
@@ -1228,7 +1251,17 @@ async function fetchLaunches() {
       button.append(details,timing);
       button.addEventListener('click', () => openLaunchModal(launch));
       countdowns.push({countdown,launch});
-      return button;
+      const row = feedElement("div","","");
+      row.append(button);
+      if (['Second','Minute','Hour'].includes(launch.precision) && launch.windowEnd > launch.windowStart) {
+        row.append(feedElement('div','lbl','Window: '+observingTime(launch.windowStart)+' – '+observingTime(launch.windowEnd)));
+      }
+      if (launch.webcast) {
+        const link = feedElement("a","briefing-webcast","Watch webcast →");
+        link.href = launch.webcast;
+        row.append(link);
+      }
+      return row;
     }));
     if (!launches.length) list.textContent = 'No upcoming launches reported.';
     if (openLaunch) {
@@ -1299,7 +1332,7 @@ async function fetchNews() {
       articles.push(item);
     }
     if (data.results.length && !articles.length) throw new Error('No valid articles');
-    list.replaceChildren(...articles);
+    list.replaceChildren(...articles.slice(0,3));
     if (!articles.length) list.textContent = 'No recent articles reported.';
     newsTime = Date.now();
     status.textContent = feedStatus(newsTime, false);

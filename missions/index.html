@@ -15,7 +15,7 @@
 <meta name="twitter:description" content="Active and upcoming space missions across all agencies. Artemis, ISS, Mars rovers, deep space probes and more.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>Missions — MissionCtrl.no</title>
-<script src="/_shared.js?v=20261125-artemis"></script>
+<script src="/_shared.js?v=20261125-exploration"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -92,6 +92,8 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
   .compare-table th,.compare-table td{padding:5px!important;}
 }
 </style>
+<link rel="stylesheet" href="/exploration.css">
+<script defer src="/exploration.js"></script>
 </head>
 <body data-page="missions">
 <div class="page">
@@ -114,6 +116,12 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
 
   <div class="section-title">Active Missions</div>
   <div class="mission-grid" id="mission-grid"></div>
+
+  <section id="watchlist" aria-labelledby="watchlist-heading">
+    <h2 class="section-title" id="watchlist-heading">Mission Watchlist</h2>
+    <div class="exploration-grid" id="watchlist-content"></div>
+    <p class="exploration-links"><a href="/mars-rovers/">Explore Mars rover photos and research</a></p>
+  </section>
 
   <div class="section-title">Mission Timeline — Key Events 2026–2030</div>
   <div class="timeline" id="timeline"></div>
@@ -216,7 +224,7 @@ const MISSIONS = [
     status:'Active', statusClass:'b-green', tags:['active','mars','nasa'],
     launch:'Jul 30, 2020', target:'Jezero Crater, Mars', duration:'Ongoing (4+ yrs)', vehicle:'Atlas V 541',
     progress:100,
-    desc:'NASA\'s most advanced Mars rover, Perseverance is searching for signs of ancient microbial life in Jezero Crater — a 45 km wide ancient lake delta. It is caching rock and soil samples in sealed tubes for eventual return to Earth on the Mars Sample Return mission. Its Ingenuity helicopter has made 70+ flights, proving powered flight on another planet.',
+    desc:'NASA\'s most advanced Mars rover, Perseverance is searching for signs of ancient microbial life in Jezero Crater — a 45 km wide ancient lake delta. It is caching rock and soil samples in sealed tubes for eventual return to Earth on the Mars Sample Return mission. Its Ingenuity helicopter demonstrated powered flight on another planet and ended its mission after 72 flights in January 2024.',
     objectives:[
       'Search for biosignatures and signs of ancient microbial life',
       'Collect and cache up to 43 rock/soil samples for return to Earth',

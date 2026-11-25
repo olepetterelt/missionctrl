@@ -15,7 +15,7 @@
 <meta name="twitter:description" content="Current weather on Mars from NASA rovers. Temperature, pressure, wind and sol data from Jezero Crater.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>Mars Weather — MissionCtrl.no</title>
-<script src="/_shared.js"></script>
+<script src="/_shared.js?v=20261125-exploration"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0b0d12;--bg2:#111318;--bg3:#181b22;--bg4:#1e2230;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde1ed;--muted:#5a5f72;--muted2:#8890a4;--blue:#4a9eff;--green:#2ed47a;--amber:#f0a500;--red:#e84040;--purple:#8b5cf6;--teal:#00c9a7;--orange:#fb923c;--mono:'Courier New',monospace;}
@@ -69,6 +69,7 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
 <body data-page="mars">
 <div class="page">
   <div class="page-title">Mars Weather</div>
+  <p><a href="/mars-rovers/" style="color:var(--blue);">Explore Mars rover photos and research</a></p>
   <div class="page-sub">Real conditions on Mars — data from NASA's Perseverance and Curiosity rovers · <span id="sol-display" class="badge b-red">Loading Sol...</span></div>
 
   <div class="section-title">Current Conditions — Jezero Crater (Perseverance)</div>
@@ -152,7 +153,7 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;fon
   <div class="grid2">
     <div class="card">
       <div class="section-title">Active Mars Missions</div>
-      <div class="fact-item"><strong style="color:var(--text);">Perseverance (NASA)</strong> — Jezero Crater, active since Feb 2021. Collecting samples, operating Ingenuity helicopter. 70+ helicopter flights.</div>
+      <div class="fact-item"><strong style="color:var(--text);">Perseverance (NASA)</strong> — Jezero Crater, active since Feb 2021. Studies Martian rocks and has collected samples. Its <a href="https://www.jpl.nasa.gov/news/after-three-years-on-mars-nasas-ingenuity-helicopter-mission-ends/">Ingenuity helicopter</a> completed 72 flights before its mission ended in January 2024.</div>
       <div class="fact-item"><strong style="color:var(--text);">Curiosity (NASA)</strong> — Gale Crater, active since Aug 2012. Climbing Mount Sharp. RTG-powered, no end date planned.</div>
       <div class="fact-item"><strong style="color:var(--text);">Mars Reconnaissance Orbiter (NASA)</strong> — Orbiting since 2006. High-res imaging, weather data. 500TB+ data returned.</div>
       <div class="fact-item"><strong style="color:var(--text);">MAVEN (NASA)</strong> — Studying atmospheric escape. Key for understanding how Mars lost its atmosphere.</div>
